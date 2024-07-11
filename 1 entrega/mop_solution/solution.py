@@ -1,11 +1,22 @@
 import numpy as np
 from sklearn.cluster import DBSCAN
+import math
 
-def sol_zero(dados, tamanho_quadrado=100):
+def sol_zero(dados):
+
     sizex = dados['sizex'][1]
     sizey = dados['sizey'][1]
+    diam_PA = dados["limite_sinal_PA"] * 2
+    lado_quad_circunsc = diam_PA / math.sqrt(2)
+    divisores_lado_area = encontrar_divisores(sizex)
+    tamanho_quadrado = lado_quad_circunsc
+    for i, divisor in enumerate(divisores_lado_area):
+        print(i, divisor)
+        if (divisor > lado_quad_circunsc):
+            tamanho_quadrado = divisores_lado_area[i-1]
+            break
+    print(tamanho_quadrado)
     coord_clientes = dados['coord_clientes']
-    num_clientes = len(coord_clientes)
     possiveis_coord_PA = dados['possiveis_coord_PA']
     n_max_possivel_PAs = len(possiveis_coord_PA)
 
@@ -69,3 +80,18 @@ def calcular_distancias_cliente_PA(coord_clientes, coord_PAs):
             distancias[i, j] = np.linalg.norm(cliente - pa)
 
     return distancias
+
+def encontrar_divisores(numero):
+    if numero <= 0:
+        return []  # Retorna lista vazia para números não positivos
+
+    divisores = []
+    raiz = int(math.sqrt(numero))
+    
+    for i in range(1, raiz + 1):
+        if numero % i == 0:
+            divisores.append(i)
+            if i != numero // i:
+                divisores.append(numero // i)
+
+    return sorted(divisores)  # Ordena os divisores, se necessário
