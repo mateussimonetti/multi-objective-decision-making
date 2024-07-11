@@ -3,7 +3,6 @@ from sklearn.cluster import DBSCAN
 import math
 
 def sol_zero(dados):
-
     sizex = dados['sizex'][1]
     sizey = dados['sizey'][1]
     diam_PA = dados["limite_sinal_PA"] * 2
