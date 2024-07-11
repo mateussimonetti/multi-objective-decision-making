@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.cluster import DBSCAN
 
-def sol_zero(dados, tamanho_quadrado=50):
+def sol_zero(dados, tamanho_quadrado=100):
     sizex = dados['sizex'][1]
     sizey = dados['sizey'][1]
     coord_clientes = dados['coord_clientes']
@@ -12,6 +12,7 @@ def sol_zero(dados, tamanho_quadrado=50):
     # Calcular o número de quadrados em cada dimensão
     num_quadrados_x = int(np.ceil(sizex / tamanho_quadrado))
     num_quadrados_y = int(np.ceil(sizey / tamanho_quadrado))
+    print(f"{num_quadrados_x}x{num_quadrados_y}")
 
     # Criar uma grade de quadrados
     grade_quadrados = np.zeros((num_quadrados_x, num_quadrados_y), dtype=int)
