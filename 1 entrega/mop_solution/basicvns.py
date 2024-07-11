@@ -7,6 +7,7 @@ from restricoes import r3,r4,r5,r6,r7,sum_restr
 from graph_maker import plot_infos
 import pandas as pd
 import matplotlib.pyplot as plt
+from sklearn.cluster import DBSCAN
 
 
 seed(321)
@@ -27,31 +28,31 @@ def basic_VNS(dados, f, k_max, max_int, plot, n_plot):
 
     y = f(dados)
 
-    while(nfe < max_int):
-        print(f"{nfe}a interacao")
-        print('f(x) inicial: {:.4f}'.format(y))
-        k = 1
-        while(k<=k_max):
-            print('f(x): {:.4f} | k = {}'.format(y,k))
-            dados_ = shake(copy.copy(dados),k) # Solução na kesima vizinhança
-            dados__ = best_change(copy.copy(dados_), f)
-            dados, k = neigh_change(copy.copy(dados), copy.copy(dados__), k, f) # atualiza x
-            y = f(dados)
-            #update log
-            n_ap.append(np.sum(dados['uso_PAs']))
+    # while(nfe < max_int):
+    #     print(f"{nfe}a interacao")
+    #     print('f(x) inicial: {:.4f}'.format(y))
+    #     k = 1
+    #     while(k<=k_max):
+    #         print('f(x): {:.4f} | k = {}'.format(y,k))
+    #         dados_ = shake(copy.copy(dados),k) # Solução na kesima vizinhança
+    #         dados__ = best_change(copy.copy(dados_), f)
+    #         dados, k = neigh_change(copy.copy(dados), copy.copy(dados__), k, f) # atualiza x
+    #         y = f(dados)
+    #         #update log
+    n_ap.append(np.sum(dados['uso_PAs']))
 
-        y_save.append(y)
-        r3_save.append(r3(dados))
-        r4_save.append(r4(dados))
-        r5_save.append(r5(dados))
-        r6_save.append(r6(dados))
-        r7_save.append(r7(dados))
+    y_save.append(y)
+    r3_save.append(r3(dados))
+    r4_save.append(r4(dados))
+    r5_save.append(r5(dados))
+    r6_save.append(r6(dados))
+    r7_save.append(r7(dados))
         
 
-        if plot and nfe % n_plot == 0:
-            log = [y_save, r3_save, r4_save, r5_save, r6_save, r7_save, n_ap]
-            plot_infos(dados, log, 'output/mop_graphs/info/', str(nfe))
-        nfe +=1
+    if plot and nfe % n_plot == 0:
+        log = [y_save, r3_save, r4_save, r5_save, r6_save, r7_save, n_ap]
+        plot_infos(dados, log, 'output/mop_graphs/info/', str(nfe))
+    nfe +=1
     return dados, [y_save, r3_save, r4_save, r5_save, r6_save, r7_save, n_ap]
 
 #aplica perturbação
@@ -90,47 +91,110 @@ def f2(dados):
     return f2_penal
 
 #retorna um valor inicial factível
+# def sol_zero(dados):
+#     # Calcula as coordenadas dos possíveis PAs
+#     coord_clientes = dados['coord_clientes']
+#     possiveis_coord_PA = dados['possiveis_coord_PA']
+#     dist_cliente_PA = dados['dist_cliente_PA']
+#     uso_PAs = dados['uso_PAs']
+#     n_max_PAs = dados['n_max_PAs']
+#     cliente_por_PA = dados['cliente_por_PA']
+#     sizex = dados['sizex']
+#     sizey = dados['sizey']
+#     grid_PAs = dados['grid_PAs']
+
+#     i=0
+#     for x in range(sizex[0], sizex[1], grid_PAs[0]):
+#         for y in range(sizey[0], sizey[1], grid_PAs[1]):
+#             possiveis_coord_PA[i, 0] = x
+#             possiveis_coord_PA[i, 1] = y
+#             i = i + 1
+
+#     # calcula distancia entre cada cliente a cada ponto de acesso
+#     for id_c, c in enumerate(coord_clientes):
+#         for id_p, p in enumerate(possiveis_coord_PA):
+#             dist_cliente_PA[id_c, id_p] = distance.euclidean(c, p)
+
+#     # gera solucao inicial - PAs ativos
+#     uso_PAs = np.zeros(len(possiveis_coord_PA))
+#     n_aps_act = np.random.randint(1,n_max_PAs)
+#     index = np.random.randint(0, uso_PAs.size, n_aps_act)
+#     uso_PAs[index] = 1
+
+#     # gera solucao inicial - clientes atendidos
+#     for i in range(0, len(cliente_por_PA)):
+#         j = np.random.choice(index)
+#         cliente_por_PA[i, j] = 1
+
+#     #atualiza os dados
+#     dados['possiveis_coord_PA'] = possiveis_coord_PA
+#     dados['uso_PAs'] = uso_PAs
+#     dados['cliente_por_PA'] = cliente_por_PA
+
+#     return dados
+
 def sol_zero(dados):
-    # Calcula as coordenadas dos possíveis PAs
-    coord_clientes = dados['coord_clientes']
-    possiveis_coord_PA = dados['possiveis_coord_PA']
-    dist_cliente_PA = dados['dist_cliente_PA']
-    uso_PAs = dados['uso_PAs']
-    n_max_PAs = dados['n_max_PAs']
-    cliente_por_PA = dados['cliente_por_PA']
-    sizex = dados['sizex']
-    sizey = dados['sizey']
-    grid_PAs = dados['grid_PAs']
+    eps = 50  # Distância máxima entre dois pontos para que um seja considerado como vizinho do outro
+    db = get_clusters(np.array(dados['coord_clientes']), eps=eps)
+    labels = db.labels_
 
-    i=0
-    for x in range(sizex[0], sizex[1], grid_PAs[0]):
-        for y in range(sizey[0], sizey[1], grid_PAs[1]):
-            possiveis_coord_PA[i, 0] = x
-            possiveis_coord_PA[i, 1] = y
-            i = i + 1
+    # Encontrar as coordenadas dos PAs como centróides dos clusters
+    unique_labels = set(labels)
+    unique_labels.discard(-1)  # Remove o rótulo de ruído
+    print(unique_labels)
 
-    # calcula distancia entre cada cliente a cada ponto de acesso
-    for id_c, c in enumerate(coord_clientes):
-        for id_p, p in enumerate(possiveis_coord_PA):
-            dist_cliente_PA[id_c, id_p] = distance.euclidean(c, p)
+    num_clientes = len(coord_clientes)
+    n_max_possivel_PAs = dados['cliente_por_PA'].shape[1]
+    num_possiveis_alocacoes = dados['possiveis_coord_PA'].shape[0]
 
-    # gera solucao inicial - PAs ativos
-    uso_PAs = np.zeros(len(possiveis_coord_PA))
-    n_aps_act = np.random.randint(1,n_max_PAs)
-    index = np.random.randint(0, uso_PAs.size, n_aps_act)
-    uso_PAs[index] = 1
+    # Verificar se o número de clusters é maior que o número máximo de PAs
+    if len(unique_labels) > n_max_possivel_PAs:
+        unique_labels = set(list(unique_labels)[:n_max_possivel_PAs])
 
-    # gera solucao inicial - clientes atendidos
-    for i in range(0, len(cliente_por_PA)):
-        j = np.random.choice(index)
-        cliente_por_PA[i, j] = 1
+    label_to_pa_index = {label: idx for idx, label in enumerate(unique_labels)}
 
-    #atualiza os dados
-    dados['possiveis_coord_PA'] = possiveis_coord_PA
+    # Inicializar a matriz uso_PAs
+    uso_PAs = [False] * num_possiveis_alocacoes
+
+    for label in unique_labels:
+        cluster_points = coord_clientes[labels == label]
+        centroid = cluster_points.mean(axis=0)
+        posicao_PA = np.round(centroid / 5) * 5
+        print(posicao_PA)
+
+
+        pa_index = label_to_pa_index[label]
+        dados['possiveis_coord_PA'][pa_index] = posicao_PA
+        uso_PAs[pa_index] = True
+        
+        # Atribuir clientes ao PA mais próximo
+        for i, coord in enumerate(coord_clientes):
+            if labels[i] == label:
+                dados['cliente_por_PA'][i, pa_index] = 1
+
+    # Atualiza os dados
     dados['uso_PAs'] = uso_PAs
-    dados['cliente_por_PA'] = cliente_por_PA
 
     return dados
+
+def get_clusters(coord_clientes, eps=3, min_samples=5, min_min_samples=1):
+    while True:
+        # Aplicar o DBSCAN
+        db = DBSCAN(eps=eps, min_samples=min_samples).fit(coord_clientes)
+        labels = db.labels_
+
+        # Encontrar o número de clusters (rótulos únicos, excluindo ruído)
+        unique_labels = set(labels)
+        unique_labels.discard(-1)  # Remove o rótulo de ruído
+
+        # Verificar se pelo menos dois clusters foram encontrados
+        if len(unique_labels) >= 3 or min_samples <= min_min_samples:
+            break
+
+        # Reduzir min_samples pela metade, garantindo que não vá abaixo de 1
+        min_samples = max(min_samples // 2, min_min_samples)
+
+    return db  # Retorna o objeto DBSCAN ajustado
 
 #Verifica
 def neigh_change(x, x_linha, k, f):
@@ -204,7 +268,6 @@ if __name__ == "__main__":
     uso_PAs = np.zeros(n_max_possivel_PAs) # vetor binario para indicar se o PA i está sendo usado ou nao
     dist_cliente_PA = np.zeros((num_clientes, n_max_possivel_PAs)) # vetor de distacias
     cliente_por_PA = np.zeros((num_clientes, n_max_possivel_PAs)) #Matriz de numero de clientes por numero de PAs indica se a PA é utilizada pelo cliente
-
     x = {
         'dist_cliente_PA':dist_cliente_PA,
         'coord_clientes': coord_clientes,
