@@ -83,10 +83,10 @@ def f2(dados):
     dist_cliente_PA = dados['dist_cliente_PA']
     
     f2_value = 0
-    print(coord_clientes)
-    print(possiveis_coord_PA)
-    print(dist_cliente_PA)
-    
+    print(f"coord_cli: {coord_clientes}")
+    print(f"coord_PA: {possiveis_coord_PA}")
+    print(f"dist cli PA: {dist_cliente_PA}")
+
     for id_c,c in enumerate(coord_clientes):
         for id_p,p in enumerate(possiveis_coord_PA):
             f2_value += dist_cliente_PA[id_c, id_p] * cliente_por_PA[id_c][id_p]
