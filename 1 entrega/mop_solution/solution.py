@@ -11,11 +11,9 @@ def sol_zero(dados):
     divisores_lado_area = encontrar_divisores(sizex)
     tamanho_quadrado = lado_quad_circunsc
     for i, divisor in enumerate(divisores_lado_area):
-        print(i, divisor)
         if (divisor > lado_quad_circunsc):
             tamanho_quadrado = divisores_lado_area[i-1]
             break
-    print(tamanho_quadrado)
     coord_clientes = dados['coord_clientes']
     possiveis_coord_PA = dados['possiveis_coord_PA']
     n_max_possivel_PAs = len(possiveis_coord_PA)
@@ -23,7 +21,6 @@ def sol_zero(dados):
     # Calcular o número de quadrados em cada dimensão
     num_quadrados_x = int(np.ceil(sizex / tamanho_quadrado))
     num_quadrados_y = int(np.ceil(sizey / tamanho_quadrado))
-    print(f"{num_quadrados_x}x{num_quadrados_y}")
 
     # Criar uma grade de quadrados
     grade_quadrados = np.zeros((num_quadrados_x, num_quadrados_y), dtype=int)
