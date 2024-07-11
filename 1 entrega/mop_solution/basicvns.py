@@ -69,6 +69,7 @@ def shake(dados, k):
 
 #função do numero de PAs a ser instalado
 def f1(dados):
+    print("oi")
     uso_PAs = dados['uso_PAs']
     f1 = sum(uso_PAs)
     f1_penal = f1 + 10 * (sum_restr(dados))
@@ -83,9 +84,6 @@ def f2(dados):
     dist_cliente_PA = dados['dist_cliente_PA']
     
     f2_value = 0
-    print(f"coord_cli: {coord_clientes}")
-    print(f"coord_PA: {possiveis_coord_PA}")
-    print(f"dist cli PA: {dist_cliente_PA}")
 
     for id_c,c in enumerate(coord_clientes):
         for id_p,p in enumerate(possiveis_coord_PA):
@@ -94,53 +92,6 @@ def f2(dados):
     f2_penal = f2_value + 10 * (sum_restr(dados))
 
     return f2_penal
-
-#retorna um valor inicial factível
-# def sol_zero(dados):
-#     # Calcula as coordenadas dos possíveis PAs
-#     coord_clientes = dados['coord_clientes']
-#     possiveis_coord_PA = dados['possiveis_coord_PA']
-#     dist_cliente_PA = dados['dist_cliente_PA']
-#     uso_PAs = dados['uso_PAs']
-#     n_max_PAs = dados['n_max_PAs']
-#     cliente_por_PA = dados['cliente_por_PA']
-#     sizex = dados['sizex']
-#     sizey = dados['sizey']
-#     grid_PAs = dados['grid_PAs']
-
-#     i=0
-#     for x in range(sizex[0], sizex[1], grid_PAs[0]):
-#         for y in range(sizey[0], sizey[1], grid_PAs[1]):
-#             possiveis_coord_PA[i, 0] = x
-#             possiveis_coord_PA[i, 1] = y
-#             i = i + 1
-
-#     # calcula distancia entre cada cliente a cada ponto de acesso
-#     for id_c, c in enumerate(coord_clientes):
-#         for id_p, p in enumerate(possiveis_coord_PA):
-#             dist_cliente_PA[id_c, id_p] = distance.euclidean(c, p)
-
-#     # gera solucao inicial - PAs ativos
-#     uso_PAs = np.zeros(len(possiveis_coord_PA))
-#     n_aps_act = np.random.randint(1,n_max_PAs)
-#     index = np.random.randint(0, uso_PAs.size, n_aps_act)
-#     uso_PAs[index] = 1
-
-#     # gera solucao inicial - clientes atendidos
-#     for i in range(0, len(cliente_por_PA)):
-#         j = np.random.choice(index)
-#         cliente_por_PA[i, j] = 1
-
-#     #atualiza os dados
-#     dados['possiveis_coord_PA'] = possiveis_coord_PA
-#     dados['uso_PAs'] = uso_PAs
-#     dados['cliente_por_PA'] = cliente_por_PA
-
-#     return dados
-
-
-
-
 
 #Verifica
 def neigh_change(x, x_linha, k, f):
