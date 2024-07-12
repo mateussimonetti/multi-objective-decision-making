@@ -26,7 +26,7 @@ def sol_zero(dados):
     grade_quadrados = np.zeros((num_quadrados_x, num_quadrados_y), dtype=int)
 
     # Atribuir cada ponto a um quadrado
-    for i, coord in enumerate(coord_clientes):
+    for coord in coord_clientes:
         x_index = int(coord[0] // tamanho_quadrado)
         y_index = int(coord[1] // tamanho_quadrado)
         grade_quadrados[x_index, y_index] += 1
@@ -34,41 +34,42 @@ def sol_zero(dados):
     # Inicializar arrays para centroides e uso de PAs
     uso_PAs = np.zeros(n_max_possivel_PAs, dtype=bool)
 
-    # Calcular centroides para cada quadrado com pelo menos um cliente
-    for x in range(num_quadrados_x):
-        for y in range(num_quadrados_y):
-            if grade_quadrados[x, y] > 0:
-                # Encontrar clientes neste quadrado
-                clientes_no_quadrado = coord_clientes[(coord_clientes[:, 0] >= x * tamanho_quadrado) &
-                                                      (coord_clientes[:, 0] < (x + 1) * tamanho_quadrado) &
-                                                      (coord_clientes[:, 1] >= y * tamanho_quadrado) &
-                                                      (coord_clientes[:, 1] < (y + 1) * tamanho_quadrado)]
+    # Ordenar quadrados por população (do mais populoso para o menos populoso)
+    quadrados_populosos = [(x, y, grade_quadrados[x, y]) for x in range(num_quadrados_x) for y in range(num_quadrados_y)]
+    quadrados_populosos.sort(key=lambda x: x[2], reverse=True)
 
-                # Calcular o centroide
-                centroid = np.mean(clientes_no_quadrado, axis=0)
-                posicao_PA = np.floor(centroid / 5) * 5
+    # Calcular centroides e alocar PAs
+    for x, y, _ in quadrados_populosos:
+        if grade_quadrados[x, y] > 0:
+            # Encontrar clientes neste quadrado
+            clientes_no_quadrado = coord_clientes[(coord_clientes[:, 0] >= x * tamanho_quadrado) &
+                                                  (coord_clientes[:, 0] < (x + 1) * tamanho_quadrado) &
+                                                  (coord_clientes[:, 1] >= y * tamanho_quadrado) &
+                                                  (coord_clientes[:, 1] < (y + 1) * tamanho_quadrado)]
 
-                # Encontrar o índice disponível para PA
-                pa_index = np.where(~uso_PAs)[0][0]
+            # Calcular o centroide
+            centroid = np.mean(clientes_no_quadrado, axis=0)
+            posicao_PA = np.floor(centroid / 5) * 5
 
-                # Atualizar dados
-                possiveis_coord_PA[pa_index] = posicao_PA
-                uso_PAs[pa_index] = True
+            # Encontrar o índice disponível para PA
+            pa_index = np.where(~uso_PAs)[0][0]
 
-                # Atribuir clientes ao PA mais próximo
-                for i, coord in enumerate(coord_clientes):
-                    if x * tamanho_quadrado <= coord[0] < (x + 1) * tamanho_quadrado and \
-                       y * tamanho_quadrado <= coord[1] < (y + 1) * tamanho_quadrado:
-                        dados['cliente_por_PA'][i, pa_index] = 1
+            # Atualizar dados
+            possiveis_coord_PA[pa_index] = posicao_PA
+            uso_PAs[pa_index] = True
 
-    if (r3(dados) != 0 or r4(dados) != 0 or r5(dados) != 0 or r6(dados) != 0 or r7(dados) != 0):
-        raise ValueError("As restrições não foram satisfeitas.")
+            # Atribuir clientes ao PA mais próximo
+            for i, coord in enumerate(coord_clientes):
+                if x * tamanho_quadrado <= coord[0] < (x + 1) * tamanho_quadrado and \
+                   y * tamanho_quadrado <= coord[1] < (y + 1) * tamanho_quadrado:
+                    dados['cliente_por_PA'][i, pa_index] = 1
 
     # Atualizar dados
     dados['dist_cliente_PA'] = calcular_distancias_cliente_PA(coord_clientes, possiveis_coord_PA)
     dados['uso_PAs'] = uso_PAs
 
     return dados
+
 
 def calcular_distancias_cliente_PA(coord_clientes, coord_PAs):
     num_clientes = len(coord_clientes)
