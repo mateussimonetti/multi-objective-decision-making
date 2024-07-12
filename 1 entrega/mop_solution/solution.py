@@ -66,7 +66,7 @@ def sol_zero(dados):
                         consumo_atual_pa += dados['cons_clientes'][i]
             cliente_por_PA = dados["cliente_por_PA"]
             dados['uso_PAs'] = uso_PAs
-            
+
         if sum_restr(dados) == 0:
             break
 
@@ -90,7 +90,7 @@ def calcular_distancias_cliente_PA(coord_clientes, coord_PAs, cliente_por_PA):
     for i, cliente in enumerate(coord_clientes):
         for j, pa in enumerate(coord_PAs):
             distancias[i, j] = np.linalg.norm(cliente - pa) * cliente_por_PA[i][j]
-    return distancias / len(coord_clientes)
+    return distancias
 
 def encontrar_divisores(numero):
     if numero <= 0:

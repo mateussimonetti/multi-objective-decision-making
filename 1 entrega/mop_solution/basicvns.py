@@ -1,14 +1,11 @@
 import numpy as np
-import os,sys,math, copy, pickle
-from scipy.spatial import distance
-from random import seed,random,randint
+import sys, copy
+from random import seed
 from estrutura_vizinhanca import k1,k2,k3,k4
 from restricoes import r3,r4,r5,r6,r7,sum_restr
 from graph_maker import plot_infos
 from solution import sol_zero
 import pandas as pd
-import matplotlib.pyplot as plt
-from sklearn.cluster import DBSCAN
 
 
 seed(321)
@@ -29,18 +26,19 @@ def basic_VNS(dados, f, k_max, max_int, plot, n_plot):
 
     y = f(dados)
 
-    # while(nfe < max_int):
-    #     print(f"{nfe}a interacao")
-    #     print('f(x) inicial: {:.4f}'.format(y))
-    #     k = 1
-    #     while(k<=k_max):
-    #         print('f(x): {:.4f} | k = {}'.format(y,k))
-    #         dados_ = shake(copy.copy(dados),k) # Solução na kesima vizinhança
-    #         dados__ = best_change(copy.copy(dados_), f)
-    #         dados, k = neigh_change(copy.copy(dados), copy.copy(dados__), k, f) # atualiza x
-    #         y = f(dados)
-    #         #update log
-    n_ap.append(np.sum(dados['uso_PAs']))
+    while(nfe < max_int):
+        print(f"{nfe}a interacao")
+        print('f(x) inicial: {:.4f}'.format(y))
+        k = 1
+        while(k<=k_max):
+            print('f(x): {:.4f} | k = {}'.format(y,k))
+            dados_ = shake(copy.copy(dados),k) # Solução na kesima vizinhança
+            dados__ = best_change(copy.copy(dados_), f)
+            dados, k = neigh_change(copy.copy(dados), copy.copy(dados__), k, f) # atualiza x
+            y = f(dados)
+            #update log
+            n_ap.append(np.sum(dados['uso_PAs']))
+        nfe +=1
 
     y_save.append(y)
     r3_save.append(r3(dados))
@@ -48,12 +46,11 @@ def basic_VNS(dados, f, k_max, max_int, plot, n_plot):
     r5_save.append(r5(dados))
     r6_save.append(r6(dados))
     r7_save.append(r7(dados))
-        
 
     if plot and nfe % n_plot == 0:
         log = [y_save, r3_save, r4_save, r5_save, r6_save, r7_save, n_ap]
         plot_infos(dados, log, 'output/mop_graphs/info/', str(nfe))
-    nfe +=1
+        
     return dados, [y_save, r3_save, r4_save, r5_save, r6_save, r7_save, n_ap]
 
 #aplica perturbação
@@ -69,10 +66,11 @@ def shake(dados, k):
 
 #função do numero de PAs a ser instalado
 def f1(dados):
-    print("oi")
     uso_PAs = dados['uso_PAs']
     f1 = sum(uso_PAs)
-    f1_penal = f1 + 10 * (sum_restr(dados))
+    if (sum_restr(dados) > 0):
+            return 1e24
+    f1_penal = f1
 
     return f1_penal
 
@@ -88,8 +86,9 @@ def f2(dados):
     for id_c,c in enumerate(coord_clientes):
         for id_p,p in enumerate(possiveis_coord_PA):
             f2_value += dist_cliente_PA[id_c, id_p] * cliente_por_PA[id_c][id_p]
-    
-    f2_penal = f2_value + 10 * (sum_restr(dados))
+    if (sum_restr(dados) > 0):
+        return 1e24
+    f2_penal = f2_value
 
     return f2_penal
 
@@ -150,7 +149,7 @@ if __name__ == "__main__":
     #Inicializa variáveis
     sizex = (0,400)
     sizey = (0,400)
-    dist_grid_PAs = 20
+    dist_grid_PAs = 10
     grid_PAs = (dist_grid_PAs,dist_grid_PAs)
     num_possiveis_alocacoes = int((sizex[1]*sizey[1])/ (grid_PAs[0]*grid_PAs[1]))  
     coord_clientes = mtx_clientes[:,:2]  # coordenadas dos clientes (x,y)
