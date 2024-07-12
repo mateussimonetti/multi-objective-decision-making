@@ -191,7 +191,7 @@ if __name__ == "__main__":
     print('-------------------------- SOLUCAO OTIMA ENCONTRADA------------------------------')
     print('[Resultado]:')
     print('Numero de PAs: {}'.format(log[6][-1]))
-    print('Valor de F(x): {}'.format(log[0][-1]))
+    print(f'Valor de F(x) (f1 = numero de PAs | f2: distancia media): {log[0][-1]:.2f}')
     print('Restricoes: 0 -> cumprida | maior que 0 -> nao cumprida')
     print('Restricao de taxa de cobertura: {}'.format(log[1][-1]))
     print('Restricao de capacidade dos PAs: {}'.format(log[2][-1]))
