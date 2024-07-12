@@ -65,22 +65,22 @@ def sol_zero(dados):
                     dados['cliente_por_PA'][i, pa_index] = 1
 
     # Atualizar dados
-    dados['dist_cliente_PA'] = calcular_distancias_cliente_PA(coord_clientes, possiveis_coord_PA)
+    cliente_por_PA = dados["cliente_por_PA"]
+    dados['dist_cliente_PA'] = calcular_distancias_cliente_PA(coord_clientes, possiveis_coord_PA, cliente_por_PA)
     dados['uso_PAs'] = uso_PAs
 
     return dados
 
 
-def calcular_distancias_cliente_PA(coord_clientes, coord_PAs):
+def calcular_distancias_cliente_PA(coord_clientes, coord_PAs, cliente_por_PA):
     num_clientes = len(coord_clientes)
     num_PAs = len(coord_PAs)
     distancias = np.zeros((num_clientes, num_PAs))
 
     for i, cliente in enumerate(coord_clientes):
         for j, pa in enumerate(coord_PAs):
-            distancias[i, j] = np.linalg.norm(cliente - pa)
-
-    return distancias
+            distancias[i, j] = np.linalg.norm(cliente - pa) * cliente_por_PA[i][j]
+    return distancias / len(coord_clientes)
 
 def encontrar_divisores(numero):
     if numero <= 0:
