@@ -1,5 +1,6 @@
 import numpy as np
-from sklearn.cluster import DBSCAN
+from restricoes import r3,r4,r5,r6,r7,sum_restr
+
 import math
 
 def sol_zero(dados):
@@ -45,7 +46,7 @@ def sol_zero(dados):
 
                 # Calcular o centroide
                 centroid = np.mean(clientes_no_quadrado, axis=0)
-                posicao_PA = np.round(centroid / 5) * 5
+                posicao_PA = np.floor(centroid / 5) * 5
 
                 # Encontrar o índice disponível para PA
                 pa_index = np.where(~uso_PAs)[0][0]
@@ -59,6 +60,9 @@ def sol_zero(dados):
                     if x * tamanho_quadrado <= coord[0] < (x + 1) * tamanho_quadrado and \
                        y * tamanho_quadrado <= coord[1] < (y + 1) * tamanho_quadrado:
                         dados['cliente_por_PA'][i, pa_index] = 1
+
+    if (r3(dados) != 0 or r4(dados) != 0 or r5(dados) != 0 or r6(dados) != 0 or r7(dados) != 0):
+        raise ValueError("As restrições não foram satisfeitas.")
 
     # Atualizar dados
     dados['dist_cliente_PA'] = calcular_distancias_cliente_PA(coord_clientes, possiveis_coord_PA)
