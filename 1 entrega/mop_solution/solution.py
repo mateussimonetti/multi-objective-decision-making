@@ -57,12 +57,18 @@ def sol_zero(dados):
             # Atualizar dados
             possiveis_coord_PA[pa_index] = posicao_PA
             uso_PAs[pa_index] = True
+            consumo_atual_pa = 0
 
             # Atribuir clientes ao PA mais próximo
             for i, coord in enumerate(coord_clientes):
-                if x * tamanho_quadrado <= coord[0] < (x + 1) * tamanho_quadrado and \
-                   y * tamanho_quadrado <= coord[1] < (y + 1) * tamanho_quadrado:
-                    dados['cliente_por_PA'][i, pa_index] = 1
+                if client_is_able_to_connect(dados, i, coord, posicao_PA, consumo_atual_pa):
+                        dados['cliente_por_PA'][i, pa_index] = 1 
+                        consumo_atual_pa += dados['cons_clientes'][i]
+            cliente_por_PA = dados["cliente_por_PA"]
+            dados['uso_PAs'] = uso_PAs
+            
+        if sum_restr(dados) == 0:
+            break
 
     # Atualizar dados
     cliente_por_PA = dados["cliente_por_PA"]
@@ -71,6 +77,10 @@ def sol_zero(dados):
 
     return dados
 
+def client_is_able_to_connect(dados, i, coord, posicao_PA, consumo_atual_pa):
+    return np.linalg.norm(coord - posicao_PA) <= dados['limite_sinal_PA'] and \
+           np.sum(dados['cliente_por_PA'][i]) ==  0 and \
+           consumo_atual_pa + dados['cons_clientes'][i] <= dados['capacidade_PA']
 
 def calcular_distancias_cliente_PA(coord_clientes, coord_PAs, cliente_por_PA):
     num_clientes = len(coord_clientes)
