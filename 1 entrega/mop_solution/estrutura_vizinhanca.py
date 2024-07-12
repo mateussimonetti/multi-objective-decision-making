@@ -108,3 +108,201 @@ def k4(dados):
     dados['uso_PAs'] = uso_PAs
     dados['cliente_por_PA'] = cliente_por_PA
     return dados
+
+# novas estruturas
+
+def calcular_distancia(x1, y1, x2, y2):
+  #Calcula a distância euclidiana entre dois pontos.
+  return np.sqrt((x2 - x1)**2 + (y2 - y1)**2)
+
+def calcular_uso_PA(x, PA_index):
+  #Calcula o uso total de banda do PA.
+  clientes_conectados = np.where(x['cliente_por_PA'][:, PA_index] == 1)[0]
+  uso_total = np.sum(x['cons_clientes'][clientes_conectados])
+  return uso_total
+
+def k11(x):
+  # Desativa o PA com menor uso e ativa um aleatório, redistribuindo clientes. 
+  # Clientes que não puderem ser atendidos por outro PA ficarão sem serviço.
+
+  # Calcula o uso de cada PA
+  uso_PAs = np.array([calcular_uso_PA(x, i) if x['uso_PAs'][i] == 1 else np.inf for i in range(len(x['uso_PAs']))])
+
+  # Encontra o PA com menor uso que está ativo
+  PA_menor_uso = np.argmin(uso_PAs)
+
+  # Desativa o PA com menor uso
+  x['uso_PAs'][PA_menor_uso] = 0
+  
+  # Libera os clientes do PA desativado
+  clientes_liberados = np.where(x['cliente_por_PA'][:, PA_menor_uso] == 1)[0]
+  x['cliente_por_PA'][clientes_liberados, PA_menor_uso] = 0
+
+  # Seleciona um novo PA aleatoriamente entre os não utilizados
+  PAs_nao_utilizados = np.where(x['uso_PAs'] == 0)[0]
+  novo_PA = random.choice(PAs_nao_utilizados)
+
+  # Ativa o novo PA
+  x['uso_PAs'][novo_PA] = 1
+
+  # Redistribui os clientes liberados
+  for cliente in clientes_liberados:
+    # Calcula a distância do cliente para o novo PA
+    distancia_novo_PA = calcular_distancia(
+      x['coord_clientes'][cliente, 0], 
+      x['coord_clientes'][cliente, 1],
+      x['possiveis_coord_PA'][novo_PA, 0], 
+      x['possiveis_coord_PA'][novo_PA, 1]
+    )
+
+    # Tenta conectar ao novo PA se estiver dentro do limite de sinal e houver capacidade
+    if distancia_novo_PA <= x['limite_sinal_PA'] and \
+       calcular_uso_PA(x, novo_PA) + x['cons_clientes'][cliente] <= x['capacidade_PA']:
+      x['cliente_por_PA'][cliente, novo_PA] = 1
+    else:
+      # Tenta conectar a outro PA disponível
+      PAs_disponiveis = np.where(x['uso_PAs'] == 1)[0]
+      PAs_disponiveis = np.delete(PAs_disponiveis, np.where(PAs_disponiveis == novo_PA))
+      
+      for PA_candidato in PAs_disponiveis:
+        distancia_candidato = calcular_distancia(
+          x['coord_clientes'][cliente, 0], 
+          x['coord_clientes'][cliente, 1],
+          x['possiveis_coord_PA'][PA_candidato, 0], 
+          x['possiveis_coord_PA'][PA_candidato, 1]
+        )
+        if distancia_candidato <= x['limite_sinal_PA'] and \
+           calcular_uso_PA(x, PA_candidato) + x['cons_clientes'][cliente] <= x['capacidade_PA']:
+          x['cliente_por_PA'][cliente, PA_candidato] = 1
+          break
+      else:
+        # Cliente fica sem atendimento
+        pass  
+
+  return x
+
+def k12(x):
+  # Encontra os 5 clientes mais distantes de seus PAs (apenas 
+  # clientes com PA atribuído) e tenta redistribuí-los.
+
+  distancias = np.full(len(x['coord_clientes']), np.inf)  # Inicializa com infinito para clientes sem PA
+  clientes_com_PA = np.where(np.sum(x['cliente_por_PA'], axis=1) > 0)[0]
+
+  # Calcula a distância apenas para clientes com PA atribuído
+  for cliente_index in clientes_com_PA:
+    PA_atual = np.where(x['cliente_por_PA'][cliente_index, :] == 1)[0][0] 
+    distancias[cliente_index] = calcular_distancia(
+        x['coord_clientes'][cliente_index, 0],
+        x['coord_clientes'][cliente_index, 1],
+        x['possiveis_coord_PA'][PA_atual, 0],
+        x['possiveis_coord_PA'][PA_atual, 1],
+    )
+
+  # Encontra os 5 clientes mais distantes que TEM PA
+  clientes_mais_distantes = np.argsort(distancias)[-5:]
+  clientes_mais_distantes = np.intersect1d(clientes_mais_distantes, clientes_com_PA)
+
+  # linhas para validação de resultados
+  # print(clientes_mais_distantes)
+  # for cliente_index in clientes_mais_distantes:
+  #   PA_atual = np.where(x['cliente_por_PA'][cliente_index, :] == 1)[0][0] 
+  #   distancias[cliente_index] = calcular_distancia(
+  #       x['coord_clientes'][cliente_index, 0],
+  #       x['coord_clientes'][cliente_index, 1],
+  #       x['possiveis_coord_PA'][PA_atual, 0],
+  #       x['possiveis_coord_PA'][PA_atual, 1],
+  #   )
+  #   print(distancias[cliente_index])
+
+  # Tenta redistribuir os clientes mais distantes
+  for cliente_index in clientes_mais_distantes:
+    # Calcula o consumo do cliente
+    cliente_consumo = x['cons_clientes'][cliente_index]
+
+    # Desconecta do PA atual
+    PA_atual = np.where(x['cliente_por_PA'][cliente_index, :] == 1)[0][0]
+    x['cliente_por_PA'][cliente_index, PA_atual] = 0
+
+    # Tenta conectar a outro PA disponível
+    PAs_disponiveis = np.where(x['uso_PAs'] == 1)[0]
+    random.shuffle(PAs_disponiveis) 
+
+    for PA_candidato in PAs_disponiveis:
+      if calcular_uso_PA(x, PA_candidato) + cliente_consumo <= x['capacidade_PA']:
+        distancia_candidato = calcular_distancia(
+            x['coord_clientes'][cliente_index, 0],
+            x['coord_clientes'][cliente_index, 1],
+            x['possiveis_coord_PA'][PA_candidato, 0],
+            x['possiveis_coord_PA'][PA_candidato, 1],
+        )
+        if distancia_candidato <= x['limite_sinal_PA']:
+          x['cliente_por_PA'][cliente_index, PA_candidato] = 1
+          break
+    else:
+      # Se não encontrar um PA disponível, reconecta ao PA original
+      x['cliente_por_PA'][cliente_index, PA_atual] = 1
+
+  # linhas para validação de resultados
+  # for cliente_index in clientes_mais_distantes:
+  #   PA_atual = np.where(x['cliente_por_PA'][cliente_index, :] == 1)[0][0] 
+  #   distancias[cliente_index] = calcular_distancia(
+  #       x['coord_clientes'][cliente_index, 0],
+  #       x['coord_clientes'][cliente_index, 1],
+  #       x['possiveis_coord_PA'][PA_atual, 0],
+  #       x['possiveis_coord_PA'][PA_atual, 1],
+  #   )
+  #   print(distancias[cliente_index])
+
+
+  return x
+
+def k13(x):
+  # Desabilita o PA com menor utilização e redistribui seus clientes 
+  # para outros PAs habilitados. Clientes que não puderem ser 
+  # redistribuídos serão desconectados.
+
+  # Calcula o uso de cada PA
+  uso_PAs = np.array([calcular_uso_PA(x, i) if x['uso_PAs'][i] == 1 else np.inf for i in range(len(x['uso_PAs']))])
+
+  # Encontra o PA com menor uso que está ativo
+  PA_menor_uso = np.argmin(uso_PAs)
+
+  # Verifica se existe mais de um PA ativo
+  if np.count_nonzero(x['uso_PAs']) <= 1:
+    print("Apenas um ou nenhum PA ativo. Impossível redistribuir.")
+    return x
+
+  # Desativa o PA com menor uso
+  x['uso_PAs'][PA_menor_uso] = 0
+
+  # Obtém os clientes do PA que será desativado
+  clientes_para_redistribuir = np.where(x['cliente_por_PA'][:, PA_menor_uso] == 1)[0]
+
+  # Tenta redistribuir os clientes
+  for cliente_index in clientes_para_redistribuir:
+    cliente_consumo = x['cons_clientes'][cliente_index]
+
+    # Desconecta do PA atual
+    x['cliente_por_PA'][cliente_index, PA_menor_uso] = 0
+
+    # Tenta conectar a outro PA disponível
+    PAs_disponiveis = np.where(x['uso_PAs'] == 1)[0]
+    random.shuffle(PAs_disponiveis)
+
+    for PA_candidato in PAs_disponiveis:
+      if calcular_uso_PA(x, PA_candidato) + cliente_consumo <= x['capacidade_PA']:
+        distancia_candidato = calcular_distancia(
+            x['coord_clientes'][cliente_index, 0],
+            x['coord_clientes'][cliente_index, 1],
+            x['possiveis_coord_PA'][PA_candidato, 0],
+            x['possiveis_coord_PA'][PA_candidato, 1],
+        )
+        if distancia_candidato <= x['limite_sinal_PA']:
+          # Conecta ao novo PA
+          x['cliente_por_PA'][cliente_index, PA_candidato] = 1
+          break  # Sai do loop se conectou com sucesso
+    else:
+      # Não encontrou nenhum PA disponível, cliente permanece desconectado
+      pass  # Não precisa fazer nada aqui, pois o cliente já foi desconectado
+
+  return x
