@@ -3,7 +3,7 @@ import os
 import sys, copy
 from random import seed
 from estrutura_vizinhanca import k1,k2,k3,k4,k11,k12,k13,k14
-from restricoes import r3,r4,r5,r6,r7,sum_restr
+from restricoes import r3,r4,r5,r6,r7,r8,sum_restr
 from graph_maker import plot_infos
 from solution import sol_zero
 import pandas as pd
@@ -18,7 +18,7 @@ np.random.seed(321)
 #max_int numero maximo de tentativas de novos valores
 def basic_VNS(dados, f, k_max, max_int, plot, n_plot):
     nfe = 0
-    n_ap, y_save, r3_save, r4_save, r5_save, r6_save, r7_save = [], [], [], [], [], [], []
+    n_ap, y_save, r3_save, r4_save, r5_save, r6_save, r7_save, r8_save = [], [], [], [], [], [], [], []
     if (k_max > 4):
         k_max = 4
     
@@ -47,12 +47,13 @@ def basic_VNS(dados, f, k_max, max_int, plot, n_plot):
     r5_save.append(r5(dados))
     r6_save.append(r6(dados))
     r7_save.append(r7(dados))
+    r8_save.append(r8(dados))
 
     if plot and nfe % n_plot == 0:
-        log = [y_save, r3_save, r4_save, r5_save, r6_save, r7_save, n_ap]
+        log = [y_save, r3_save, r4_save, r5_save, r6_save, r7_save, r8_save, n_ap]
         plot_infos(dados, log, 'output/mop_graphs/info/', str(nfe))
         
-    return dados, [y_save, r3_save, r4_save, r5_save, r6_save, r7_save, n_ap]
+    return dados, [y_save, r3_save, r4_save, r5_save, r6_save, r7_save, r8_save, n_ap]
 
 #aplica perturbação
 def shake(dados, k):

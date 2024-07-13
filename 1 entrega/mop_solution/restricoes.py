@@ -53,15 +53,28 @@ def r7(dados):
     
     return penal
 
+def r8(dados):
+        coord_PAs = dados['possiveis_coord_PA']
+        dist_matrix = np.load('dist_matrix.npy')
+        coord_pas_ativos = coord_PAs / 5
+        coord_pas_ativos = coord_pas_ativos.astype(int)
+        num_PAs = len(coord_pas_ativos)
+        num_clientes = int(dist_matrix.shape[2])
+        exposicao = np.zeros((num_PAs, num_clientes))
+        for i, pa in enumerate(coord_pas_ativos):
+            exposicao[i] = 1 / dist_matrix[pa[0]][pa[1]]
+        soma_exposicoes = np.sum(exposicao, axis=0)
+        pessoas_com_exp_abaixo = np.sum(soma_exposicoes < 0.05)
+        return pessoas_com_exp_abaixo
+
 
 def sum_restr(dados):
-    return r3(dados) + r4(dados) + r5(dados) + r6(dados) + r7(dados)
+    return r3(dados) + r4(dados) + r5(dados) + r6(dados) + r7(dados) + r8(dados)
 
 def calcular_distancias_cliente_PA(coord_PAs, cliente_por_PA):
     dist_matrix = np.load('dist_matrix.npy')
     num_clientes = int(dist_matrix.shape[2])
-    mascara = np.any(coord_PAs != 0, axis=1)
-    pas_ativos = coord_PAs[mascara]
+    pas_ativos = coord_PAs
     num_PAs = len(pas_ativos)
     coord_pas_ativos = pas_ativos / 5
     coord_pas_ativos = coord_pas_ativos.astype(int)
