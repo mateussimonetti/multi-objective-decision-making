@@ -1,7 +1,7 @@
 import numpy as np
 import os,sys,math, copy, pickle
 from scipy.spatial import distance
-from random import seed,random,randint
+import random
 import pandas as pd
 import matplotlib.pyplot as plt
 
@@ -120,6 +120,16 @@ def calcular_uso_PA(x, PA_index):
   clientes_conectados = np.where(x['cliente_por_PA'][:, PA_index] == 1)[0]
   uso_total = np.sum(x['cons_clientes'][clientes_conectados])
   return uso_total
+
+def encontrar_pas_na_regiao(x, regiao_x, regiao_y):
+  """Encontra os índices dos PAs dentro de uma região do grid."""
+  pas_na_regiao = []
+  for PA_index in range(x['n_max_possivel_PAs']):
+    pa_x = x['possiveis_coord_PA'][PA_index, 0]
+    pa_y = x['possiveis_coord_PA'][PA_index, 1]
+    if regiao_x[0] <= pa_x < regiao_x[1] and regiao_y[0] <= pa_y < regiao_y[1]:
+      pas_na_regiao.append(PA_index)
+  return pas_na_regiao
 
 def k11(x):
   # Desativa o PA com menor uso e ativa um aleatório, redistribuindo clientes. 
@@ -304,5 +314,60 @@ def k13(x):
     else:
       # Não encontrou nenhum PA disponível, cliente permanece desconectado
       pass  # Não precisa fazer nada aqui, pois o cliente já foi desconectado
+
+  return x
+
+def k14(x):
+
+  # Seleciona uma região aleatória do grid, encontra o PA com 
+  # menos clientes conectados nessa região e tenta redistribuir 
+  # esses clientes para outros PAs habilitados em qualquer 
+  # lugar do grid.
+
+
+  # Define uma região aleatória de 50x50 com x e y sempre positivos
+  regiao_x = (random.randint(0, max(0, x['sizex'][1] - 50)), random.randint(0, max(0, x['sizex'][1] - 50)) + 50)
+  regiao_y = (random.randint(0, max(0, x['sizey'][1] - 50)), random.randint(0, max(0, x['sizey'][1] - 50)) + 50)
+
+  # Encontra os PAs ativos dentro da região
+  pas_na_regiao = encontrar_pas_na_regiao(x, regiao_x, regiao_y)
+  pas_ativos_na_regiao = np.intersect1d(pas_na_regiao, np.where(x['uso_PAs'] == 1)[0])
+
+  # Se não houver PAs ativos na região, retorna
+  if len(pas_ativos_na_regiao) == 0:
+    #print("Nenhum PA ativo encontrado na região selecionada.")
+    return x
+
+  # Encontra o PA com menos clientes conectados na região
+  num_clientes_por_pa = np.sum(x['cliente_por_PA'][:, pas_ativos_na_regiao], axis=0)
+  PA_menor_uso_na_regiao = pas_ativos_na_regiao[np.argmin(num_clientes_por_pa)]
+
+  # Desativa o PA com menor uso na região
+  x['uso_PAs'][PA_menor_uso_na_regiao] = 0
+
+  # Tenta redistribuir os clientes do PA desabilitado
+  clientes_para_redistribuir = np.where(x['cliente_por_PA'][:, PA_menor_uso_na_regiao] == 1)[0]
+  for cliente_index in clientes_para_redistribuir:
+    cliente_consumo = x['cons_clientes'][cliente_index]
+
+    # Tenta conectar a outro PA disponível em qualquer região
+    PAs_disponiveis = np.where(x['uso_PAs'] == 1)[0]
+    random.shuffle(PAs_disponiveis)
+
+    for PA_candidato in PAs_disponiveis:
+      if calcular_uso_PA(x, PA_candidato) + cliente_consumo <= x['capacidade_PA']:
+        distancia_candidato = calcular_distancia(
+            x['coord_clientes'][cliente_index, 0],
+            x['coord_clientes'][cliente_index, 1],
+            x['possiveis_coord_PA'][PA_candidato, 0],
+            x['possiveis_coord_PA'][PA_candidato, 1],
+        )
+        if distancia_candidato <= x['limite_sinal_PA']:
+          # Conecta ao novo PA
+          x['cliente_por_PA'][cliente_index, PA_candidato] = 1
+          break
+    else:
+      # Cliente permanece desconectado se nenhum PA estiver disponível
+      pass
 
   return x

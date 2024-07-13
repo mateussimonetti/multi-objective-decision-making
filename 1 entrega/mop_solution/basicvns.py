@@ -1,7 +1,8 @@
 import numpy as np
+import os
 import sys, copy
 from random import seed
-from estrutura_vizinhanca import k1,k2,k3,k4
+from estrutura_vizinhanca import k1,k2,k3,k4,k11,k12,k13,k14
 from restricoes import r3,r4,r5,r6,r7,sum_restr
 from graph_maker import plot_infos
 from solution import sol_zero
@@ -160,24 +161,25 @@ if __name__ == "__main__":
     dist_cliente_PA = np.zeros((num_clientes, n_max_PAs)) # vetor de distacias
     cliente_por_PA = np.zeros((num_clientes, n_max_PAs)) #Matriz de numero de clientes por numero de PAs indica se a PA é utilizada pelo cliente
     
+    if not os.path.exists('dist_matrix.npy'):
     # Inicializar a matriz tridimensional
-    dim_x_matriz = int(sizex[1] // grid_PAs[0])
-    dim_y_matriz = int(sizey[1] // grid_PAs[1])
-    dist_matrix = np.zeros((dim_x_matriz, dim_y_matriz, num_clientes))
+        dim_x_matriz = int(sizex[1] // grid_PAs[0])
+        dim_y_matriz = int(sizey[1] // grid_PAs[1])
+        dist_matrix = np.zeros((dim_x_matriz, dim_y_matriz, num_clientes))
 
-    # Calcular as coordenadas centrais de cada célula no grid
-    
-    grid_coords = np.array([[(i * grid_PAs[0], j * grid_PAs[1])
-                            for j in range(dim_y_matriz+1)] for i in range(dim_x_matriz+1)])
+        # Calcular as coordenadas centrais de cada célula no grid
+        
+        grid_coords = np.array([[(i * grid_PAs[0], j * grid_PAs[1])
+                                for j in range(dim_y_matriz+1)] for i in range(dim_x_matriz+1)])
 
-    # Calcular as distâncias euclidianas
-    for i in range(dim_x_matriz):
-        for j in range(dim_y_matriz):
-            for k in range(num_clientes):
-                dist_matrix[i][j][k] = np.linalg.norm(coord_clientes[k] - grid_coords[i][j])
+        # Calcular as distâncias euclidianas
+        for i in range(dim_x_matriz):
+            for j in range(dim_y_matriz):
+                for k in range(num_clientes):
+                    dist_matrix[i][j][k] = np.linalg.norm(coord_clientes[k] - grid_coords[i][j])
 
-    # Escrever a matriz em um arquivo
-    np.save('dist_matrix.npy', dist_matrix)
+        # Escrever a matriz em um arquivo
+        np.save('dist_matrix.npy', dist_matrix)
 
     x = {
         'dist_cliente_PA':dist_cliente_PA,
@@ -215,6 +217,11 @@ if __name__ == "__main__":
     print('(Para a restricao acima, qualquer valor maior que zero se refere a distancia maxima entre usuario e area de acao do PA)')
     print('\n\n')
     
+    ultimas_colunas = sol['cliente_por_PA'][:, -15:]
+    np.set_printoptions(edgeitems=500, linewidth=1000)
+    print(sol['cliente_por_PA'])
+    a = np.any(ultimas_colunas != 0)
+    print(f"tem diferente de zero: {a}")
     #plot solution
     plot_infos(sol, log, dir_='output/vns/info/')
     

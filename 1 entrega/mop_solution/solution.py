@@ -38,7 +38,7 @@ def sol_zero(dados):
     # Ordenar quadrados por população (do mais populoso para o menos populoso)
     quadrados_populosos = [(x, y, grade_quadrados[x, y]) for x in range(num_quadrados_x) for y in range(num_quadrados_y)]
     quadrados_populosos.sort(key=lambda x: x[2], reverse=True)
-    posicao_PAs = [];
+    posicao_PAs = []
 
     # Calcular centroides e alocar PAs
     for x, y, _ in quadrados_populosos:
@@ -66,6 +66,7 @@ def sol_zero(dados):
                         consumo_atual_pa += dados['cons_clientes'][i]
             cliente_por_PA = dados["cliente_por_PA"]
             dados['uso_PAs'] = uso_PAs
+
 
         cliente_por_PA = dados["cliente_por_PA"]
         coord_PAs =  np.array(posicao_PAs)
