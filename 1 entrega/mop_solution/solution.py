@@ -1,9 +1,10 @@
 import numpy as np
-from restricoes import r3,r4,r5,r6,r7,sum_restr
+from restricoes import sum_restr, calcular_distancias_cliente_PA
 
 import math
 
 def sol_zero(dados):
+
     sizex = dados['sizex'][1]
     sizey = dados['sizey'][1]
     diam_PA = dados["limite_sinal_PA"] * 2
@@ -15,8 +16,8 @@ def sol_zero(dados):
             tamanho_quadrado = divisores_lado_area[i-1]
             break
     coord_clientes = dados['coord_clientes']
-    possiveis_coord_PA = dados['possiveis_coord_PA']
-    n_max_possivel_PAs = len(possiveis_coord_PA)
+    # possiveis_coord_PA = dados['possiveis_coord_PA']
+    n_max_possivel_PAs = dados['n_max_PAs']
 
     # Calcular o número de quadrados em cada dimensão
     num_quadrados_x = int(np.ceil(sizex / tamanho_quadrado))
@@ -37,6 +38,7 @@ def sol_zero(dados):
     # Ordenar quadrados por população (do mais populoso para o menos populoso)
     quadrados_populosos = [(x, y, grade_quadrados[x, y]) for x in range(num_quadrados_x) for y in range(num_quadrados_y)]
     quadrados_populosos.sort(key=lambda x: x[2], reverse=True)
+    posicao_PAs = [];
 
     # Calcular centroides e alocar PAs
     for x, y, _ in quadrados_populosos:
@@ -51,11 +53,9 @@ def sol_zero(dados):
             centroid = np.mean(clientes_no_quadrado, axis=0)
             posicao_PA = np.floor(centroid / 5) * 5
 
-            # Encontrar o índice disponível para PA
-            pa_index = np.where(~uso_PAs)[0][0]
-
             # Atualizar dados
-            possiveis_coord_PA[pa_index] = posicao_PA
+            posicao_PAs.append(posicao_PA)
+            pa_index = len(posicao_PAs) - 1
             uso_PAs[pa_index] = True
             consumo_atual_pa = 0
 
@@ -67,12 +67,15 @@ def sol_zero(dados):
             cliente_por_PA = dados["cliente_por_PA"]
             dados['uso_PAs'] = uso_PAs
 
+        cliente_por_PA = dados["cliente_por_PA"]
+        coord_PAs =  np.array(posicao_PAs)
+        dados['possiveis_coord_PA'] = coord_PAs
         if sum_restr(dados) == 0:
             break
 
     # Atualizar dados
-    cliente_por_PA = dados["cliente_por_PA"]
-    dados['dist_cliente_PA'] = calcular_distancias_cliente_PA(coord_clientes, possiveis_coord_PA, cliente_por_PA)
+
+    dados['dist_cliente_PA'] = calcular_distancias_cliente_PA(coord_PAs, cliente_por_PA)
     dados['uso_PAs'] = uso_PAs
 
     return dados
@@ -81,16 +84,6 @@ def client_is_able_to_connect(dados, i, coord, posicao_PA, consumo_atual_pa):
     return np.linalg.norm(coord - posicao_PA) <= dados['limite_sinal_PA'] and \
            np.sum(dados['cliente_por_PA'][i]) ==  0 and \
            consumo_atual_pa + dados['cons_clientes'][i] <= dados['capacidade_PA']
-
-def calcular_distancias_cliente_PA(coord_clientes, coord_PAs, cliente_por_PA):
-    num_clientes = len(coord_clientes)
-    num_PAs = len(coord_PAs)
-    distancias = np.zeros((num_clientes, num_PAs))
-
-    for i, cliente in enumerate(coord_clientes):
-        for j, pa in enumerate(coord_PAs):
-            distancias[i, j] = np.linalg.norm(cliente - pa) * cliente_por_PA[i][j]
-    return distancias
 
 def encontrar_divisores(numero):
     if numero <= 0:

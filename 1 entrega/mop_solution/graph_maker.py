@@ -3,10 +3,9 @@ import numpy as np
 
 def plot_infos(dados, y, dir_='./', cod='final'):
     possiveis_coord_PA = dados['possiveis_coord_PA']
-    pos = dados['uso_PAs'] == 1
     coord_clientes = dados['coord_clientes']
     cliente_por_PA_ = dados['cliente_por_PA']
-    x_sol = possiveis_coord_PA[pos]
+    x_sol = possiveis_coord_PA
 
     fig, axes = plt.subplots(4, 1, figsize=(8, 16))
 
