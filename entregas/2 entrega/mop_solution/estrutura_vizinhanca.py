@@ -59,7 +59,7 @@ def k1(dados):
     dados['dist_cliente_PA'] = calcular_distancias_cliente_PA(dados['possiveis_coord_PA'], dados['cliente_por_PA'])
     dados['possiveis_coord_PA'] = PAs_ativos
 
-    print(sum_restr(dados))
+
     return dados
 
 def k2(dados):
@@ -132,7 +132,7 @@ def k2(dados):
         dados['dist_cliente_PA'] = calcular_distancias_cliente_PA(dados['possiveis_coord_PA'], dados['cliente_por_PA'])
         dados['possiveis_coord_PA'] = PAs_ativos
 
-    print(sum_restr(dados))
+
     return dados
 
 def k3(dados):
@@ -191,7 +191,7 @@ def k3(dados):
         dados['possiveis_coord_PA'], dados['cliente_por_PA']
     )
 
-    print(sum_restr(dados))
+
     return dados
 
 def k4(dados):
@@ -242,7 +242,7 @@ def k4(dados):
         dados["cliente_por_PA"] = new_cliente_por_PA
         dados["possiveis_coord_PA"] = PAs_alocados
 
-    print(sum_restr(dados))
+
     return dados
 
 def calcular_dist_ord_cliente_PAs(coord_PAs):
@@ -256,7 +256,10 @@ def calcular_dist_ord_cliente_PAs(coord_PAs):
 
     for i in range(num_clientes):
         grid_dist = dist_matrix[:, :, i]
-        dist_PAs = grid_dist[coord_pas_ativos[:, 0], coord_pas_ativos[:, 1]]
+        try:
+            dist_PAs = grid_dist[coord_pas_ativos[:, 0], coord_pas_ativos[:, 1]]
+        except Exception as e:
+            print(f"coord_pas_ativos: {coord_pas_ativos}")
         indexes_ordenados = np.argsort(dist_PAs)
         PAs_ordenados_por_dist[i, :, :2] = pas_ativos[indexes_ordenados]
         PAs_ordenados_por_dist[i, :, 2] = indexes_ordenados
