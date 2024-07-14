@@ -48,13 +48,16 @@ def r6(dados):
     return penal
 
 # Garante que a distancia nao exceda a distancia max de um ponto de acesso
-def r7(dados):
+def r7(dados, teste = None):
+
     coord_PAs = dados['possiveis_coord_PA']
     cliente_por_PA = dados['cliente_por_PA']
     limite_sinal_PA = dados['limite_sinal_PA']
     distancias = calcular_distancias_cliente_PA(coord_PAs, cliente_por_PA)
     rel_cliente_range = distancias - limite_sinal_PA
     distancias_positivas = rel_cliente_range[rel_cliente_range > 0]
+    if teste is not None:
+        np.savetxt('matriz_distancias.txt', distancias, fmt='%.2f')
     penal = np.sum(distancias_positivas)
     # if penal > 0:
     #     print('biziu r7')
@@ -82,7 +85,7 @@ def sum_restr(dados):
 
 def calcular_distancias_cliente_PA(coord_PAs, cliente_por_PA):
     dist_matrix = np.load('dist_matrix.npy')
-    num_clientes = int(dist_matrix.shape[2])
+    num_clientes = int(dist_matrix.shape[2]) # 495
     pas_ativos = coord_PAs
     num_PAs = len(pas_ativos)
     coord_pas_ativos = pas_ativos / 5
@@ -91,4 +94,8 @@ def calcular_distancias_cliente_PA(coord_PAs, cliente_por_PA):
 
     for i, pa in enumerate(coord_pas_ativos):
         distancias[i] = dist_matrix[pa[0]][pa[1]] * cliente_por_PA[:, i]
+    
+    # np.savetxt('matriz_distancias.txt', distancias.T, fmt='%.2f')
+    # np.savetxt('cliente_por_PA.txt', cliente_por_PA, fmt='%.2f')
+    # np.savetxt('coord_pas_ativos.txt', coord_pas_ativos, fmt='%.2f')
     return distancias.T

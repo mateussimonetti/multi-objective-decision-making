@@ -1,5 +1,5 @@
 import numpy as np
-from restricoes import calcular_distancias_cliente_PA, sum_restr
+from restricoes import calcular_distancias_cliente_PA, sum_restr, r3, r4, r5, r6, r7, r8
 from solution import client_is_able_to_connect
 
 """
@@ -35,32 +35,16 @@ def k1(dados):
 
     # Remove os clientes do PA
     dados['cliente_por_PA'][:, PA_menos_clientes] = 0
-
-    # Tenta realocar os clientes desalocados
-    for cliente in clientes_desalocados:
-        # Remove a conexão do cliente com o PA desativado
-        dados['cliente_por_PA'][cliente, PA_menos_clientes] = 0
-        # Calcula distâncias apenas para PAs ativos
-        distancias = np.linalg.norm(dados['coord_clientes'][cliente] - dados['possiveis_coord_PA'], axis=1)
-
-        # Encontra PAs ativos dentro do limite de sinal
-        PAs_ativos_alcance = PAs_ativos[np.where(distancias <= dados['limite_sinal_PA'])[0]]
-
-        # Tenta conectar ao PA com capacidade disponível
-        for i in range(len(PAs_ativos_alcance)):
-            PA = PAs_ativos_alcance[i]
-            consumo_atual_pa = np.sum(dados['cliente_por_PA'][:, i] * dados['cons_clientes'])
-            if consumo_atual_pa + dados['cons_clientes'][cliente] <= dados['capacidade_PA']:
-                dados['cliente_por_PA'][cliente, i] = 1
-                break  # Conectou o cliente, passa para o próximo
+    dados = realoca_clientes(dados, clientes_desalocados)
 
 
     # Atualiza a matriz de distâncias (considerando apenas PAs ativos)
     dados['dist_cliente_PA'] = calcular_distancias_cliente_PA(dados['possiveis_coord_PA'], dados['cliente_por_PA'])
     dados['possiveis_coord_PA'] = PAs_ativos
 
-
+    print(f"{r3(dados)} | {r4(dados)} |{r5(dados)} |{r6(dados)} |{r7(dados, 1)} |{r8(dados)} ")
     return dados
+
 
 def k2(dados):
     """
@@ -164,17 +148,20 @@ def k3(dados):
     )[0]
 
     # Para cada cliente na região, tenta conectá-lo ao PA mais próximo com capacidade
-    for cliente in clientes_na_regiao:
-        # Calcula a distância para todos os PAs ativos
-        distancias = np.linalg.norm(
-            dados['coord_clientes'][cliente] - dados['possiveis_coord_PA'], axis=1
-        )
+    dados = realoca_clientes(dados, clientes_na_regiao)
 
-        # Ordena os PAs por distância
-        PAs_ordenados_por_distancia = np.argsort(distancias)
+    # Atualiza a matriz de distâncias (considerando apenas PAs ativos)
+    dados['dist_cliente_PA'] = calcular_distancias_cliente_PA(
+        dados['possiveis_coord_PA'], dados['cliente_por_PA']
+    )
+    return dados
 
+def realoca_clientes(dados, clientes):
+    dist_ord_clientes = calcular_dist_ord_cliente_PAs(dados['possiveis_coord_PA'])
+    for i, cliente in enumerate(clientes):
         # Tenta conectar ao PA mais próximo com capacidade disponível
-        for PA in PAs_ordenados_por_distancia:
+        for PA in dist_ord_clientes[i]:
+            print(f"Para o cliente {i} os PAs mais prioximos sao, em ordem: {dist_ord_clientes[i]}")
             consumo_atual_pa = np.sum(dados['cliente_por_PA'][:, PA] * dados['cons_clientes'])
             if consumo_atual_pa + dados['cons_clientes'][cliente] <= dados['capacidade_PA']:
                 # Desconecta do PA anterior (se houver)
@@ -185,13 +172,6 @@ def k3(dados):
                 # Conecta ao novo PA
                 dados['cliente_por_PA'][cliente, PA] = 1
                 break
-
-    # Atualiza a matriz de distâncias (considerando apenas PAs ativos)
-    dados['dist_cliente_PA'] = calcular_distancias_cliente_PA(
-        dados['possiveis_coord_PA'], dados['cliente_por_PA']
-    )
-
-
     return dados
 
 def k4(dados):
@@ -246,6 +226,7 @@ def k4(dados):
     return dados
 
 def calcular_dist_ord_cliente_PAs(coord_PAs):
+    print()
     dist_matrix = np.load('dist_matrix.npy')
     num_clientes = int(dist_matrix.shape[2])
     pas_ativos = coord_PAs

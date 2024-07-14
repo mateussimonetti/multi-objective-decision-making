@@ -19,9 +19,6 @@ def sol_zero(dados):
     # possiveis_coord_PA = dados['possiveis_coord_PA']
     n_max_possivel_PAs = dados['n_max_PAs']
 
-    # Inicializar a matriz cliente_por_PA com tamanho máximo #VO
-    dados['cliente_por_PA'] = np.zeros((len(dados['coord_clientes']), dados['n_max_PAs'])) #VO
-
     # Calcular o número de quadrados em cada dimensão
     num_quadrados_x = int(np.ceil(sizex / tamanho_quadrado))
     num_quadrados_y = int(np.ceil(sizey / tamanho_quadrado))
