@@ -39,17 +39,8 @@ def plot_infos(dados, y, dir_='./', cod='final'):
     axes[3].plot(coord_clientes[:, 0], coord_clientes[:, 1], 'bs', label='Clientes')
     axes[3].plot(x_sol[:, 0], x_sol[:, 1], 'ro', label='Pontos de Acesso')
     for id_c, c in enumerate(coord_clientes):
-        print(id_c)
-        try: 
-            s = np.where(cliente_por_PA_[id_c, :] == 1)[0]
-            print(f"PA conectado: {possiveis_coord_PA[s]}")
-        except Exception as e:
-            print(f"cliente por PA: {cliente_por_PA_}")
-            print(f"possiveis_coord_PA: {possiveis_coord_PA}")
-            print(f"idx PA: {s}")
-            print(f"idx do cliente: {id_c}")
-            np.savetxt('cliente_por_PA.txt', cliente_por_PA_, fmt='%.2f')
-        if len(s) > 0:
+        s = np.where(cliente_por_PA_[id_c, :] == 1)[0]
+        if len(s > 0) and s <= len(possiveis_coord_PA)-1:
             axes[3].plot([int(coord_clientes[id_c, 0]), int(possiveis_coord_PA[s, 0])], [int(coord_clientes[id_c, 1]), int(possiveis_coord_PA[s, 1])])
     axes[3].legend(loc=1)
     axes[3].set_xlabel('X')
@@ -58,5 +49,6 @@ def plot_infos(dados, y, dir_='./', cod='final'):
     axes[3].grid(True)
 
     # Salvar figuras
+    print(f'Resultado em {dir_}plot_{cod}.png')
     fig.savefig(dir_ + 'plot_' + cod + '.png')
     plt.close(fig)

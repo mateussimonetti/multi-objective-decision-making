@@ -162,25 +162,25 @@ if __name__ == "__main__":
     dist_cliente_PA = np.zeros((num_clientes, n_max_PAs)) # vetor de distacias
     cliente_por_PA = np.zeros((num_clientes, n_max_PAs)) #Matriz de numero de clientes por numero de PAs indica se a PA é utilizada pelo cliente
     
-    # if not os.path.exists('dist_matrix.npy'):
-# Inicializar a matriz tridimensional
-    dim_x_matriz = int(sizex[1] // grid_PAs[0]) + 1
-    dim_y_matriz = int(sizey[1] // grid_PAs[1]) + 1
-    dist_matrix = np.zeros((dim_x_matriz, dim_y_matriz, num_clientes))
+    if not os.path.exists('dist_matrix.npy'):
+        # Inicializar a matriz tridimensional
+        dim_x_matriz = int(sizex[1] // grid_PAs[0]) + 1
+        dim_y_matriz = int(sizey[1] // grid_PAs[1]) + 1
+        dist_matrix = np.zeros((dim_x_matriz, dim_y_matriz, num_clientes))
 
-    # Calcular as coordenadas centrais de cada célula no grid
-    
-    grid_coords = np.array([[(i * grid_PAs[0], j * grid_PAs[1])
-                            for j in range(dim_y_matriz+1)] for i in range(dim_x_matriz+1)])
+        # Calcular as coordenadas centrais de cada célula no grid
+        
+        grid_coords = np.array([[(i * grid_PAs[0], j * grid_PAs[1])
+                                for j in range(dim_y_matriz+1)] for i in range(dim_x_matriz+1)])
 
-    # Calcular as distâncias euclidianas
-    for i in range(dim_x_matriz):
-        for j in range(dim_y_matriz):
-            for k in range(num_clientes):
-                dist_matrix[i][j][k] = np.linalg.norm(coord_clientes[k] - grid_coords[i][j])
+        # Calcular as distâncias euclidianas
+        for i in range(dim_x_matriz):
+            for j in range(dim_y_matriz):
+                for k in range(num_clientes):
+                    dist_matrix[i][j][k] = np.linalg.norm(coord_clientes[k] - grid_coords[i][j])
 
-    # Escrever a matriz em um arquivo
-    np.save('dist_matrix.npy', dist_matrix)
+        # Escrever a matriz em um arquivo
+        np.save('dist_matrix.npy', dist_matrix)
 
     x = {
         'dist_cliente_PA':dist_cliente_PA,
@@ -207,8 +207,6 @@ if __name__ == "__main__":
     # print solution
     print('-------------------------- SOLUCAO OTIMA ENCONTRADA------------------------------')
     print('[Resultado]:')
-    print(log)
-    print(log[7])
     print('Numero de PAs: {}'.format(log[7][-1]))
     print(f'Valor de F(x) (f1 = numero de PAs | f2: distancia total): {log[0][-1]:.2f}')
     print('Restricoes: 0 -> cumprida | maior que 0 -> nao cumprida')
