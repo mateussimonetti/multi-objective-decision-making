@@ -32,7 +32,6 @@ def k1(dados):
 
     # Obtém os clientes do PA desativado
     clientes_desalocados = np.where(dados['cliente_por_PA'][:, PA_menos_clientes] == 1)[0]
-
     # Remove os clientes do PA
     dados['cliente_por_PA'][:, PA_menos_clientes] = 0
     dados = realoca_clientes(dados, clientes_desalocados)
@@ -158,20 +157,21 @@ def k3(dados):
 
 def realoca_clientes(dados, clientes):
     dist_ord_clientes = calcular_dist_ord_cliente_PAs(dados['possiveis_coord_PA'])
+    cliente_por_PA = dados['cliente_por_PA']
     for i, cliente in enumerate(clientes):
+        # Limpa cliente que será realocado
+        cliente_por_PA[i] = np.zeros(dados['n_max_PAs'])
+        consumo_PAs = np.zeros(len(dados['possiveis_coord_PA']))
+
         # Tenta conectar ao PA mais próximo com capacidade disponível
         for PA in dist_ord_clientes[i]:
-            print(f"Para o cliente {i} os PAs mais prioximos sao, em ordem: {dist_ord_clientes[i]}")
-            consumo_atual_pa = np.sum(dados['cliente_por_PA'][:, PA] * dados['cons_clientes'])
-            if consumo_atual_pa + dados['cons_clientes'][cliente] <= dados['capacidade_PA']:
-                # Desconecta do PA anterior (se houver)
-                PA_anterior = np.argmax(dados['cliente_por_PA'][cliente])
-                if PA_anterior != PA:
-                    dados['cliente_por_PA'][cliente, PA_anterior] = 0
-
-                # Conecta ao novo PA
-                dados['cliente_por_PA'][cliente, PA] = 1
-                break
+            idx_PA = int(PA[2])
+            if client_is_able_to_connect(dados, i, cliente, PA[:2], consumo_PAs[idx_PA]):
+                cliente_por_PA[i][idx_PA] = 1
+                consumo_PAs[idx_PA] += dados['cons_clientes'][i]
+            break
+    
+    dados['cliente_por_PA'] = cliente_por_PA
     return dados
 
 def k4(dados):
