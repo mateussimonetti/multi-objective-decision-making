@@ -59,7 +59,7 @@ def basic_VNS(dados, f, k_max, max_int, plot, n_plot):
 def shake(dados, k):
     n_change = 1
     switch = {
-        1: k1,
+        1: k4,
         2: k2,
         3: k3,
         4: k4
