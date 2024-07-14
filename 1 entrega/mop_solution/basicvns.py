@@ -2,7 +2,7 @@ import numpy as np
 import os
 import sys, copy
 from random import seed
-from estrutura_vizinhanca import k1,k2,k3,k4,k11,k12,k13,k14
+from estrutura_vizinhanca import k11,k12,k13,k14
 from restricoes import r3,r4,r5,r6,r7,r8,sum_restr
 from graph_maker import plot_infos
 from solution import sol_zero
@@ -38,7 +38,7 @@ def basic_VNS(dados, f, k_max, max_int, plot, n_plot):
             dados, k = neigh_change(copy.copy(dados), copy.copy(dados__), k, f) # atualiza x
             y = f(dados)
             #update log
-            n_ap.append(np.sum(dados['uso_PAs']))
+            n_ap.append(len(dados['possiveis_coord_PA']))
         nfe +=1
 
     y_save.append(y)
@@ -59,10 +59,10 @@ def basic_VNS(dados, f, k_max, max_int, plot, n_plot):
 def shake(dados, k):
     n_change = 1
     switch = {
-        1: k1,
-        2: k2,
-        3: k3,
-        4: k4
+        1: k11,
+        2: k12,
+        3: k13,
+        4: k14
     }
     return switch[k](dados)
 
@@ -207,7 +207,9 @@ if __name__ == "__main__":
     # print solution
     print('-------------------------- SOLUCAO OTIMA ENCONTRADA------------------------------')
     print('[Resultado]:')
-    print('Numero de PAs: {}'.format(log[6][-1]))
+    print(log)
+    print(log[7])
+    print('Numero de PAs: {}'.format(log[7][-1]))
     print(f'Valor de F(x) (f1 = numero de PAs | f2: distancia total): {log[0][-1]:.2f}')
     print('Restricoes: 0 -> cumprida | maior que 0 -> nao cumprida')
     print('Restricao de taxa de cobertura: {}'.format(log[1][-1]))
@@ -218,11 +220,6 @@ if __name__ == "__main__":
     print('(Para a restricao acima, qualquer valor maior que zero se refere a distancia maxima entre usuario e area de acao do PA)')
     print('\n\n')
     
-    ultimas_colunas = sol['cliente_por_PA'][:, -15:]
-    np.set_printoptions(edgeitems=500, linewidth=1000)
-    print(sol['cliente_por_PA'])
-    a = np.any(ultimas_colunas != 0)
-    print(f"tem diferente de zero: {a}")
     #plot solution
     plot_infos(sol, log, dir_='output/vns/info/')
     

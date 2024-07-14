@@ -5,109 +5,6 @@ import random
 import pandas as pd
 import matplotlib.pyplot as plt
 
-#coloca o ponto de acesso 'ponto' em um lugar aleatorio
-#troca o status de um ponto de acesso
-def k1(dados):
-    uso_PAs = dados['uso_PAs'].copy() #PAs ativos
-    cliente_por_PA = dados['cliente_por_PA'].copy() #cliente x pa
-
-    pas_act = np.where(uso_PAs==1)[0]
-    pas_dact = np.where(uso_PAs==0)[0]
-
-    #selecionar um ligado para distribuir entre outros
-    if len(pas_act) > 0 and len(pas_dact) > 0:
-
-        pv = np.random.choice(pas_act, size=1, replace=False)
-        pn = np.random.choice(pas_dact, size=1, replace=False)
-        
-        #passando todos os clientes que são atendidos pelo ponto de acesso para o novo ponto de acesso
-        nad = cliente_por_PA[:,pn].copy()
-        cliente_por_PA[:,pn] = cliente_por_PA[:,pv].copy()
-        cliente_por_PA[:,pv] = nad.copy()
-
-        #trocando o estados de utilização dos pontos de acesso
-        uso_PAs[pv] = not uso_PAs[pv]
-        uso_PAs[pn] = not uso_PAs[pn]
-        #atualizando 
-        dados['uso_PAs'] = uso_PAs
-        dados['cliente_por_PA'] = cliente_por_PA
-
-    return dados
-
-#Coloca para um cliente ser atendido por outro ponto de acesso ativo
-def k2(dados):
-    uso_PAs = dados['uso_PAs'].copy()
-    cliente_por_PA = dados['cliente_por_PA'].copy()
-
-    pas_act = np.where(uso_PAs==1)[0]
-
-    #selecionar um ligado para distribuir entre outros
-    if len(pas_act) > 0:
-
-        pn = np.random.choice(pas_act, size=1, replace=False)
-        cliente = np.random.choice(cliente_por_PA.shape[0], size=1, replace=False)
-    
-        pontovelho = cliente_por_PA[cliente,:] == 1
-        cliente_por_PA[cliente,pontovelho[0]] = 0
-        cliente_por_PA[cliente,pn] = 1
-    
-        dados['uso_PAs'] = uso_PAs
-        dados['cliente_por_PA'] = cliente_por_PA
-    
-    return dados
-    
-#Altera o estado do ponto de acesso 
-def k3(dados):
-    uso_PAs = dados['uso_PAs'].copy()
-    cliente_por_PA = dados['cliente_por_PA'].copy()
-
-
-    pas_act = np.where(uso_PAs==1)[0]
-
-    if len(pas_act) > 0:
-        pv = np.random.choice(pas_act, size=1, replace=False)
-        clt = np.where(cliente_por_PA[:,pv]==1)
-        for c in clt:
-            ps = np.random.choice(pas_act, size=1, replace=False)
-            if ps == pv:
-                ps = np.random.choice(pas_act, size=1, replace=False)
-                cliente_por_PA[c,ps] = 1
-        cliente_por_PA[clt, pv] = 0 
-        
-    
-        uso_PAs[pv] = 0
-        dados['uso_PAs'] = uso_PAs
-        dados['cliente_por_PA'] = cliente_por_PA
-
-    return dados
-
-
-#Redistribui aleatoriamente os clientes
-def k4(dados):
-    uso_PAs = dados['uso_PAs'].copy()
-    cliente_por_PA = dados['cliente_por_PA'].copy()
-
-    pas_act = np.where(uso_PAs==1)[0]
-    #selecionar um ligado para distribuir entre outros
-    if len(pas_act) > 0:
-        clt1 = np.random.choice(pas_act, size=1, replace=False)
-        clt2 = np.random.choice(pas_act, size=1, replace=False)
-        #para cada cliente redistribui os clientes para cada um que será ativo
-        clientes_1 = cliente_por_PA[:,clt1].copy()
-        clientes_2 = cliente_por_PA[:,clt2].copy()
-        clt1_ac = np.where(clientes_1==1)[0]
-        clt2_ac = np.where(clientes_2==1)[0]
-        if len(clt1_ac) > 0 and len(clt2_ac) > 0:
-            s1 = np.random.choice(clt1_ac, size=1, replace=False)
-            s2 = np.random.choice(clt2_ac, size=1, replace=False)
-            clientes_1[s1], clientes_1[s2] = 0, 1
-            clientes_2[s2], clientes_2[s1] = 0, 1
-            cliente_por_PA[:,clt1] = clientes_1
-            cliente_por_PA[:,clt2] = clientes_2
-
-    dados['uso_PAs'] = uso_PAs
-    dados['cliente_por_PA'] = cliente_por_PA
-    return dados
 
 # novas estruturas
 
@@ -115,11 +12,11 @@ def calcular_distancia(x1, y1, x2, y2):
   #Calcula a distância euclidiana entre dois pontos.
   return np.sqrt((x2 - x1)**2 + (y2 - y1)**2)
 
-def calcular_uso_PA(x, PA_index):
-  #Calcula o uso total de banda do PA.
-  clientes_conectados = np.where(x['cliente_por_PA'][:, PA_index] == 1)[0]
-  uso_total = np.sum(x['cons_clientes'][clientes_conectados])
-  return uso_total
+def calcular_uso_PA(x):
+  num_PAs = len(x['possiveis_coord_PA'])
+  users_on_PA = np.sum(x['cliente_por_PA'], axis=0)
+  return users_on_PA[:num_PAs]
+
 
 def encontrar_pas_na_regiao(x, regiao_x, regiao_y):
   """Encontra os índices dos PAs dentro de uma região do grid."""
@@ -131,64 +28,74 @@ def encontrar_pas_na_regiao(x, regiao_x, regiao_y):
       pas_na_regiao.append(PA_index)
   return pas_na_regiao
 
+def client_is_able_to_connect(dados, i, coord, posicao_PA, consumo_atual_pa):
+    return np.linalg.norm(coord - posicao_PA) <= dados['limite_sinal_PA'] and \
+           np.sum(dados['cliente_por_PA'][i]) ==  0 and \
+           consumo_atual_pa + dados['cons_clientes'][i] <= dados['capacidade_PA']
+
+def PAs_mais_prox(idx_cliente, coord_PAs):
+    dist_matrix = np.load('dist_matrix.npy')
+    pas_ativos = coord_PAs
+    num_PAs = len(pas_ativos)
+    coord_pas_ativos = pas_ativos / 5
+    coord_pas_ativos = coord_pas_ativos.astype(int)
+    coordenadas_PAs_mais_prox = np.zeros((num_PAs, 2))
+
+  # Criar uma lista de tuplas (coord_PA, dist_PA_atual)
+    lista_coord_dist = []
+
+    for i, pa in enumerate(coord_pas_ativos):
+        dist_PA_atual = dist_matrix[pa[0], pa[1], idx_cliente]  # Corrigido para acesso correto
+        lista_coord_dist.append((coord_PAs[i], dist_PA_atual))
+
+    # Ordenar a lista com base na distância atual do PA
+    lista_coord_dist_ordenada = sorted(lista_coord_dist, key=lambda x: x[1])
+
+    # Extrair as coordenadas ordenadas
+    coordenadas_PAs_mais_prox = np.array([coord for coord, _ in lista_coord_dist_ordenada])
+
+    return coordenadas_PAs_mais_prox
+
+def calcula_consumo_PAs(x):
+  clientes_por_PA = x['cliente_por_PA']
+  cons_clientes = x['cons_clientes']
+
+  return np.dot(cons_clientes.T, clientes_por_PA)
+
 def k11(x):
   # Desativa o PA com menor uso e ativa um aleatório, redistribuindo clientes. 
   # Clientes que não puderem ser atendidos por outro PA ficarão sem serviço.
 
   # Calcula o uso de cada PA
-  uso_PAs = np.array([calcular_uso_PA(x, i) if x['uso_PAs'][i] == 1 else np.inf for i in range(len(x['uso_PAs']))])
+  uso_PAs = calcular_uso_PA(x)
 
   # Encontra o PA com menor uso que está ativo
   PA_menor_uso = np.argmin(uso_PAs)
 
   # Desativa o PA com menor uso
-  x['uso_PAs'][PA_menor_uso] = 0
-  
+  coord_PAs = x['possiveis_coord_PA']
+  remocao_pa = np.delete(coord_PAs, PA_menor_uso, axis=0)
+  x['possiveis_coord_PA'] = remocao_pa
+
   # Libera os clientes do PA desativado
-  clientes_liberados = np.where(x['cliente_por_PA'][:, PA_menor_uso] == 1)[0]
-  x['cliente_por_PA'][clientes_liberados, PA_menor_uso] = 0
+  idx_clientes_liberados = np.where(x['cliente_por_PA'][:, PA_menor_uso] == 1)[0]
+  x['cliente_por_PA'][idx_clientes_liberados, PA_menor_uso] = 0
+  coord_clientes = x['coord_clientes']
 
-  # Seleciona um novo PA aleatoriamente entre os não utilizados
-  PAs_nao_utilizados = np.where(x['uso_PAs'] == 0)[0]
-  novo_PA = random.choice(PAs_nao_utilizados)
-
-  # Ativa o novo PA
-  x['uso_PAs'][novo_PA] = 1
-
-  # Redistribui os clientes liberados
-  for cliente in clientes_liberados:
-    # Calcula a distância do cliente para o novo PA
-    distancia_novo_PA = calcular_distancia(
-      x['coord_clientes'][cliente, 0], 
-      x['coord_clientes'][cliente, 1],
-      x['possiveis_coord_PA'][novo_PA, 0], 
-      x['possiveis_coord_PA'][novo_PA, 1]
-    )
-
-    # Tenta conectar ao novo PA se estiver dentro do limite de sinal e houver capacidade
-    if distancia_novo_PA <= x['limite_sinal_PA'] and \
-       calcular_uso_PA(x, novo_PA) + x['cons_clientes'][cliente] <= x['capacidade_PA']:
-      x['cliente_por_PA'][cliente, novo_PA] = 1
-    else:
-      # Tenta conectar a outro PA disponível
-      PAs_disponiveis = np.where(x['uso_PAs'] == 1)[0]
-      PAs_disponiveis = np.delete(PAs_disponiveis, np.where(PAs_disponiveis == novo_PA))
-      
-      for PA_candidato in PAs_disponiveis:
-        distancia_candidato = calcular_distancia(
-          x['coord_clientes'][cliente, 0], 
-          x['coord_clientes'][cliente, 1],
-          x['possiveis_coord_PA'][PA_candidato, 0], 
-          x['possiveis_coord_PA'][PA_candidato, 1]
-        )
-        if distancia_candidato <= x['limite_sinal_PA'] and \
-           calcular_uso_PA(x, PA_candidato) + x['cons_clientes'][cliente] <= x['capacidade_PA']:
-          x['cliente_por_PA'][cliente, PA_candidato] = 1
-          break
-      else:
-        # Cliente fica sem atendimento
-        pass  
-
+  #Encontra o array de PAs mais proximos ordenado
+  print(f'index de clientes liberados: {idx_clientes_liberados}')
+  arr_consumo_pa = calcula_consumo_PAs(x)
+  for idx_cliente in idx_clientes_liberados:
+    print(f'coord cliente {idx_cliente}: {coord_clientes[idx_cliente]}')
+    possiveis_PAs_p_conectar = PAs_mais_prox(idx_cliente, x['possiveis_coord_PA'])
+    for pa_index, pa in enumerate(possiveis_PAs_p_conectar):
+      consumo_pa = arr_consumo_pa[pa_index]
+      if client_is_able_to_connect(x, idx_cliente, coord_clientes[idx_cliente], pa, consumo_pa):
+        x['cliente_por_PA'][idx_cliente, pa_index] = 1
+        print(f'alocou cliente {idx_cliente}') 
+      break
+  
+  print(f"possiveis coord pa: {x['possiveis_coord_PA']}")
   return x
 
 def k12(x):

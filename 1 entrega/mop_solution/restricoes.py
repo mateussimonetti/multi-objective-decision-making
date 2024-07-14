@@ -19,6 +19,9 @@ def r4(dados):
     penal = 0
     for id_p,p in enumerate(possiveis_coord_PA):
         penal += max(0, np.sum(cliente_por_PA[:,id_p]*cons_clientes) - capacidade_PA)
+
+    if penal > 0:
+        print('biziu r4')
     return penal
 
 # garante que cada cliente estará conectado a no maximo 1 PA
@@ -29,6 +32,8 @@ def r5(dados):
 
     for id_c,c in enumerate(coord_clientes):
         penal += max(0, np.sum(cliente_por_PA[id_c,:]) - 1)
+    if penal > 0:
+        print('biziu r5')
     return penal
 
 # garante que nao exceda o numero de pontos de acesso
@@ -38,6 +43,8 @@ def r6(dados):
 
     penal = np.sum(uso_PAs) - n_max_PAs
     penal = max(0, penal)
+    if penal > 0:
+        print('biziu r6')
 
     return penal
 
@@ -50,7 +57,8 @@ def r7(dados):
     rel_cliente_range = distancias - limite_sinal_PA
     distancias_positivas = rel_cliente_range[rel_cliente_range > 0]
     penal = np.sum(distancias_positivas)
-    
+    if penal > 0:
+        print('biziu r7')
     return penal
 
 def r8(dados):
@@ -65,6 +73,8 @@ def r8(dados):
             exposicao[i] = 1 / dist_matrix[pa[0]][pa[1]]
         soma_exposicoes = np.sum(exposicao, axis=0)
         pessoas_com_exp_abaixo = np.sum(soma_exposicoes < 0.05)
+        if pessoas_com_exp_abaixo > 0:
+            print('biziu r8')
         return pessoas_com_exp_abaixo
 
 
