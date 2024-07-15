@@ -81,10 +81,15 @@ def sol_zero(dados):
 
     return dados
 
-def client_is_able_to_connect(dados, i, coord, posicao_PA, consumo_atual_pa):
-    return np.linalg.norm(coord - posicao_PA) <= dados['limite_sinal_PA'] and \
-           np.sum(dados['cliente_por_PA'][i]) ==  0 and \
-           consumo_atual_pa + dados['cons_clientes'][i] <= dados['capacidade_PA']
+def client_is_able_to_connect(dados, idx_cliente, posicao_cliente, posicao_PA, consumo_atual_pa, logs = None):
+    if logs is not None:
+        print(f" client is able to connect: {idx_cliente} | {posicao_cliente} | {posicao_PA} | {consumo_atual_pa}")
+        print(f" a distancia é: {np.linalg.norm(posicao_cliente - posicao_PA)}")
+        print(f" cliente está conectado: {np.sum(dados['cliente_por_PA'][idx_cliente])}")
+        print(f" o consumo ficaria: {consumo_atual_pa + dados['cons_clientes'][idx_cliente]}")
+    return np.linalg.norm(posicao_cliente - posicao_PA) <= dados['limite_sinal_PA'] and \
+           np.sum(dados['cliente_por_PA'][idx_cliente]) ==  0 and \
+           consumo_atual_pa + dados['cons_clientes'][idx_cliente] <= dados['capacidade_PA']
 
 def encontrar_divisores(numero):
     if numero <= 0:
