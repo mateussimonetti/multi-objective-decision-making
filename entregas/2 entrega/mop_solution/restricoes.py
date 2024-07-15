@@ -4,9 +4,9 @@ def r3(dados):
     tx_coverage = dados['tx_coverage'] # Taxa de cobertura
     coord_clientes = dados['coord_clientes'] # Coordenadas dos clientes
     cliente_por_PA = dados['cliente_por_PA']
-
+    print(f"taxa de cobertura: {tx_coverage * len(coord_clientes)} | clientes alocados: {cliente_por_PA.sum()}")
     penal = int(tx_coverage * len(coord_clientes)) - cliente_por_PA.sum()
-    penal = max(0, penal) ** 2
+    penal = max(0, penal)
     return penal
 
 # Garante nao estourar a capacidade do ponto de acesso
@@ -84,8 +84,6 @@ def sum_restr(dados):
     return r3(dados) + r4(dados) + r5(dados) + r6(dados) + r7(dados) + r8(dados)
 
 def calcular_distancias_cliente_PA(coord_PAs, cliente_por_PA, dados =  None):
-    if len(coord_PAs) == 14:
-        print(coord_PAs)
     
     dist_matrix = np.load('dist_matrix.npy')
     num_clientes = int(dist_matrix.shape[2]) # 495
