@@ -39,7 +39,7 @@ def k1(dados):
     dados['cliente_por_PA'] = np.hstack((dados['cliente_por_PA'], coluna_zeros))
 
 
-    dados = realoca_clientes(dados, clientes_desalocados)
+    dados = realoca_clientes(dados, clientes_desalocados, 1)
 
     return dados
 
@@ -175,8 +175,12 @@ def k4(dados):
     return dados
 
 
-def realoca_clientes(dados, clientes):
+def realoca_clientes(dados, clientes, pa_priorizado = None):
     dist_ord_clientes = calcular_dist_ord_cliente_PAs(dados['possiveis_coord_PA'])
+    if pa_priorizado is not None:
+        print(f"dist_ord_clientes: {dist_ord_clientes[0]}")
+        dist_ord_clientes = priorizar_PA(dist_ord_clientes, pa_priorizado)
+        print(f"dist_ord_clientes att: {dist_ord_clientes[0]}")
     cliente_por_PA = dados['cliente_por_PA']
     for i, cliente in enumerate(clientes):
         # Limpa cliente que será realocado
@@ -219,3 +223,25 @@ def calcular_dist_ord_cliente_PAs(coord_PAs):
         PAs_ordenados_por_dist[i, :, :2] = pas_ativos[indexes_ordenados]
         PAs_ordenados_por_dist[i, :, 2] = indexes_ordenados
     return PAs_ordenados_por_dist
+
+def priorizar_PA(coord_PAs_idxados, idx_PA):
+    # Crie uma cópia da matriz para não modificar a original
+    matriz_ordenada = np.empty_like(coord_PAs_idxados)
+    # Iterar sobre cada uma das 495 matrizes
+    for i in range(coord_PAs_idxados.shape[0]):
+        # Encontre o índice da linha que contém o valor prioritário na terceira coluna
+        indices_prioritarios = np.where(coord_PAs_idxados[i][:, 2] == idx_PA)[0]
+        
+        if len(indices_prioritarios) == 0:
+            matriz_ordenada[i] = coord_PAs_idxados[i]  # Se o valor prioritário não for encontrado, mantenha a matriz original
+        else:
+            # Extraia a linha prioritária
+            linha_prioritaria = coord_PAs_idxados[i][indices_prioritarios[0]]
+            
+            # Remova a linha prioritária da matriz
+            matriz_sem_prioritaria = np.delete(coord_PAs_idxados[i], indices_prioritarios[0], axis=0)
+            
+            # Adicione a linha prioritária no início da matriz
+            matriz_ordenada[i] = np.vstack([linha_prioritaria, matriz_sem_prioritaria])
+    
+    return matriz_ordenada
