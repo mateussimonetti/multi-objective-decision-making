@@ -4,7 +4,6 @@ def r3(dados):
     tx_coverage = dados['tx_coverage'] # Taxa de cobertura
     coord_clientes = dados['coord_clientes'] # Coordenadas dos clientes
     cliente_por_PA = dados['cliente_por_PA']
-    print(f"taxa de cobertura: {tx_coverage * len(coord_clientes)} | clientes alocados: {cliente_por_PA.sum()}")
     penal = int(tx_coverage * len(coord_clientes)) - cliente_por_PA.sum()
     penal = max(0, penal)
     return penal

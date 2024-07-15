@@ -35,7 +35,7 @@ def k1(dados):
     #Apaga o PA da relação clientes por PA
     dados['cliente_por_PA'] = np.delete(dados['cliente_por_PA'], PA_menos_clientes, axis=1)
     coluna_zeros = np.zeros((dados['cliente_por_PA'].shape[0], 1))
-    
+
     dados['cliente_por_PA'] = np.hstack((dados['cliente_por_PA'], coluna_zeros))
 
 
@@ -165,10 +165,8 @@ def realoca_clientes(dados, clientes):
 
         # Tenta conectar ao PA mais próximo com capacidade disponível
         for PA in dist_ord_clientes[i]:
-            print(f'Tentando realocart o cliente {i} ao PA {PA}')
             idx_PA = int(PA[2])
             if client_is_able_to_connect(dados, i, cliente, PA[:2], consumo_PAs[idx_PA]):
-                print("Conseguiu")
                 cliente_por_PA[i][idx_PA] = 1
                 consumo_PAs[idx_PA] += dados['cons_clientes'][i]
             break

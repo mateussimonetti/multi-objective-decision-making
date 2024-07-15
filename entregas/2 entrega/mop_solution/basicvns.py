@@ -34,6 +34,7 @@ def basic_VNS(dados, f, k_max, max_int, plot, n_plot):
         while(k<=k_max):
             print('f(x): {:.4f} | k = {}'.format(y,k))
             dados_ = shake(copy.deepcopy(dados),k) # Solução na kesima vizinhança
+            print(len(dados_['possiveis_coord_PA']))
             dados__ = best_change(copy.deepcopy(dados_), f)
             dados, k = neigh_change(copy.deepcopy(dados), copy.deepcopy(dados__), k, f) # atualiza x
             y = f(dados)
@@ -68,8 +69,7 @@ def shake(dados, k):
 
 #função do numero de PAs a ser instalado
 def f1(dados):
-    uso_PAs = dados['uso_PAs']
-    f1 = sum(uso_PAs)
+    f1 = len(dados['possiveis_coord_PA'])
     if (sum_restr(dados) > 0):
             return 1e24
     return f1
@@ -123,6 +123,7 @@ def best_change(dados, f):
 
     # Avalia as funções objetivo
     f_values = [float(f(d)) for d in new_dados]
+    print(f_values)
 
     # Retorna os dados correspondentes à melhor função objetivo
     return new_dados[np.argmin(f_values)]
