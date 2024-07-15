@@ -156,7 +156,9 @@ def realoca_clientes(dados, clientes):
         # Tenta conectar ao PA mais próximo com capacidade disponível
         for PA in dist_ord_clientes[i]:
             idx_PA = int(PA[2])
+            print(f"cliente {i} tentando se conectar ao PA {PA[:2]}")
             if client_is_able_to_connect(dados, i, cliente, PA[:2], consumo_PAs[idx_PA]):
+                print('conseguiu')
                 cliente_por_PA[i][idx_PA] = 1
                 consumo_PAs[idx_PA] += dados['cons_clientes'][i]
             break
@@ -218,7 +220,6 @@ def k4(dados):
 def calcular_dist_ord_cliente_PAs(coord_PAs):
     dist_matrix = np.load('dist_matrix.npy')
     num_clientes = int(dist_matrix.shape[2])
-    np.savetxt('distancia_pro_primeiro_cara.txt', dist_matrix[:, :, 0])
     pas_ativos = coord_PAs
     num_PAs = len(pas_ativos)
     coord_pas_ativos = pas_ativos // 5
@@ -227,10 +228,9 @@ def calcular_dist_ord_cliente_PAs(coord_PAs):
 
     for i in range(num_clientes):
         grid_dist = dist_matrix[:, :, i] #(81,81)
+        
         try:
-            dist_PAs = grid_dist[[11], [11]]
-            if i == 0:
-                print(f"distancia do cliente {i} para o PA 55 55: {dist_PAs}")
+            dist_PAs = grid_dist[coord_pas_ativos[:, 0], coord_pas_ativos[:, 1]]
         except Exception as e:
             print(f"coord_pas_ativos: {coord_pas_ativos}")
         indexes_ordenados = np.argsort(dist_PAs)
