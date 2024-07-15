@@ -28,13 +28,12 @@ def basic_VNS(dados, f, k_max, max_int, plot, n_plot):
     y = f(dados)
 
     while(nfe < max_int):
-        print(f"{nfe}a interacao")
+        print(f"{nfe+1}a interacao")
         print('f(x) inicial: {:.4f}'.format(y))
         k = 1
         while(k<=k_max):
             print('f(x): {:.4f} | k = {}'.format(y,k))
             dados_ = shake(copy.deepcopy(dados),k) # Solução na kesima vizinhança
-            print(len(dados_['possiveis_coord_PA']))
             dados__ = best_change(copy.deepcopy(dados_), f)
             dados, k = neigh_change(copy.deepcopy(dados), copy.deepcopy(dados__), k, f) # atualiza x
             y = f(dados)
@@ -123,7 +122,6 @@ def best_change(dados, f):
 
     # Avalia as funções objetivo
     f_values = [float(f(d)) for d in new_dados]
-    print(f_values)
 
     # Retorna os dados correspondentes à melhor função objetivo
     return new_dados[np.argmin(f_values)]
@@ -178,8 +176,6 @@ if __name__ == "__main__":
         for i in range(dim_x_matriz):
             for j in range(dim_y_matriz):
                 for k in range(num_clientes):
-                    if i == j and j == k and k == 0:
-                        print(np.linalg.norm(coord_clientes[k] - grid_coords[i][j]))
                     dist_matrix[i][j][k] = np.linalg.norm(coord_clientes[k] - grid_coords[i][j])
         # Escrever a matriz em um arquivo
         np.save('dist_matrix.npy', dist_matrix)
