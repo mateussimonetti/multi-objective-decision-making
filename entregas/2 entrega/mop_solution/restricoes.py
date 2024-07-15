@@ -53,11 +53,11 @@ def r7(dados, teste = None):
     coord_PAs = dados['possiveis_coord_PA']
     cliente_por_PA = dados['cliente_por_PA']
     limite_sinal_PA = dados['limite_sinal_PA']
-    distancias = calcular_distancias_cliente_PA(coord_PAs, cliente_por_PA)
+    distancias = calcular_distancias_cliente_PA(coord_PAs, cliente_por_PA, dados)
     rel_cliente_range = distancias - limite_sinal_PA
     distancias_positivas = rel_cliente_range[rel_cliente_range > 0]
     if teste is not None:
-        np.savetxt('matriz_distancias.txt', distancias, fmt='%.2f')
+        np.savetxt('matriz_distancias_restr.txt', distancias, fmt='%.2f')
     penal = np.sum(distancias_positivas)
     # if penal > 0:
     #     print('biziu r7')
@@ -83,7 +83,7 @@ def r8(dados):
 def sum_restr(dados):
     return r3(dados) + r4(dados) + r5(dados) + r6(dados) + r7(dados) + r8(dados)
 
-def calcular_distancias_cliente_PA(coord_PAs, cliente_por_PA):
+def calcular_distancias_cliente_PA(coord_PAs, cliente_por_PA, dados =  None):
     dist_matrix = np.load('dist_matrix.npy')
     num_clientes = int(dist_matrix.shape[2]) # 495
     pas_ativos = coord_PAs
@@ -93,9 +93,19 @@ def calcular_distancias_cliente_PA(coord_PAs, cliente_por_PA):
     distancias = np.zeros((num_PAs, num_clientes))
 
     for i, pa in enumerate(coord_pas_ativos):
+        # if len(coord_pas_ativos) == 14:
+        #     print(f"Para o PA {pa[0]} {pa[1]}")
+        #     print(f"dist matrix: {dist_matrix[pa[0]][pa[1]][:20]}")
+        #     print(f"cliente_por_PA: {cliente_por_PA[:, i][:20]}")
         distancias[i] = dist_matrix[pa[0]][pa[1]] * cliente_por_PA[:, i]
+
+
+
+
     
     # np.savetxt('matriz_distancias.txt', distancias.T, fmt='%.2f')
     # np.savetxt('cliente_por_PA.txt', cliente_por_PA, fmt='%.2f')
     # np.savetxt('coord_pas_ativos.txt', coord_pas_ativos, fmt='%.2f')
+
+
     return distancias.T

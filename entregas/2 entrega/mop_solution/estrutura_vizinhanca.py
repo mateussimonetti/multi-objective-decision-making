@@ -36,11 +36,6 @@ def k1(dados):
     dados['cliente_por_PA'][:, PA_menos_clientes] = 0
     dados = realoca_clientes(dados, clientes_desalocados)
 
-
-    # Atualiza a matriz de distâncias (considerando apenas PAs ativos)
-    dados['dist_cliente_PA'] = calcular_distancias_cliente_PA(dados['possiveis_coord_PA'], dados['cliente_por_PA'])
-    dados['possiveis_coord_PA'] = PAs_ativos
-
     print(f"{r3(dados)} | {r4(dados)} |{r5(dados)} |{r6(dados)} |{r7(dados, 1)} |{r8(dados)} ")
     return dados
 
@@ -110,12 +105,7 @@ def k2(dados):
                     dados['cliente_por_PA'][cliente, i] = 1
                     break  # Conectou o cliente, passa para o próximo
 
-
-        # Atualiza a matriz de distâncias (considerando apenas PAs ativos)
-        dados['dist_cliente_PA'] = calcular_distancias_cliente_PA(dados['possiveis_coord_PA'], dados['cliente_por_PA'])
-        dados['possiveis_coord_PA'] = PAs_ativos
-
-
+    print(f"{r3(dados)} | {r4(dados)} |{r5(dados)} |{r6(dados)} |{r7(dados, 1)} |{r8(dados)} ")
     return dados
 
 def k3(dados):
@@ -226,9 +216,9 @@ def k4(dados):
     return dados
 
 def calcular_dist_ord_cliente_PAs(coord_PAs):
-    print()
     dist_matrix = np.load('dist_matrix.npy')
     num_clientes = int(dist_matrix.shape[2])
+    np.savetxt('distancia_pro_primeiro_cara.txt', dist_matrix[:, :, 0])
     pas_ativos = coord_PAs
     num_PAs = len(pas_ativos)
     coord_pas_ativos = pas_ativos // 5
@@ -236,9 +226,11 @@ def calcular_dist_ord_cliente_PAs(coord_PAs):
     PAs_ordenados_por_dist = np.zeros((num_clientes, num_PAs, 3))
 
     for i in range(num_clientes):
-        grid_dist = dist_matrix[:, :, i]
+        grid_dist = dist_matrix[:, :, i] #(81,81)
         try:
-            dist_PAs = grid_dist[coord_pas_ativos[:, 0], coord_pas_ativos[:, 1]]
+            dist_PAs = grid_dist[[11], [11]]
+            if i == 0:
+                print(f"distancia do cliente {i} para o PA 55 55: {dist_PAs}")
         except Exception as e:
             print(f"coord_pas_ativos: {coord_pas_ativos}")
         indexes_ordenados = np.argsort(dist_PAs)
