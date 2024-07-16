@@ -185,25 +185,29 @@ def k5(dados):
     """
 
     PAs_ativos = dados['possiveis_coord_PA']
-    num_PAs_ativos = len(PAs_ativos)
 
     # Encontra um PA ativo aleatorio e o desativa
     idx_PA_aleatorio = np.random.choice(PAs_ativos.shape[0])
     backup_PA = PAs_ativos[idx_PA_aleatorio]
     PAs_ativos = np.delete(PAs_ativos, idx_PA_aleatorio, axis=0)
-    # Remove os clientes do PA
     dados['possiveis_coord_PA'] = PAs_ativos
-    # Obtém os clientes do PA desativado primeiro
+
+    # Obtém os clientes do PA desativado e que nao estavam conectados antes
     clientes_desalocados = np.where(dados['cliente_por_PA'][:, idx_PA_aleatorio] == 1)[0]
-    #Apaga o PA da relação clientes por PA
+    clientes_desconectados = np.where(np.sum(dados['cliente_por_PA'], axis=1) == 0)[0]
+    clientes_sem_PA = np.union1d(clientes_desalocados, clientes_desconectados)
+
+
+    #Apaga o PA da relação clientes por PA e adiciona uma coluna para nao quebrar cliente_por_PA
     dados['cliente_por_PA'] = np.delete(dados['cliente_por_PA'], idx_PA_aleatorio, axis=1)
-    #Adiciona uma coluna para nao quebrar cliente_por_PA
     coluna_zeros = np.zeros((dados['cliente_por_PA'].shape[0], 1))
     dados['cliente_por_PA'] = np.hstack((dados['cliente_por_PA'], coluna_zeros))
+
     #Adiciona um novo PA para a vizinhança do PA removido no fim do array
     PA_na_vizinhanca = deslocar_coordenada(backup_PA)
     PAs_ativos = np.append(PAs_ativos, [PA_na_vizinhanca], axis=0)
     print(f"PA novo: {PAs_ativos[len(PAs_ativos) - 1]}")
+
     coluna_PA_novo = dados['cliente_por_PA'][:, len(PAs_ativos) - 1]
     soma_coluna = np.sum(coluna_PA_novo)
     if soma_coluna > 0:
@@ -212,7 +216,7 @@ def k5(dados):
     #Pega ID do novo PA, que é o ultimo da fila, e prioriza a conexao dos desalocados nele
     idx_prioridade = len(PAs_ativos) - 1
 
-    dados = realoca_clientes(dados, clientes_desalocados, idx_prioridade)
+    dados = realoca_clientes(dados, clientes_sem_PA, idx_prioridade)
     print(f"{r3(dados)} | {r4(dados)} | {r5(dados)} | {r6(dados)} | {r7(dados)} | {r8(dados)}")
     return dados
 
@@ -223,18 +227,18 @@ def realoca_clientes(dados, clientes_indexes, pa_priorizado = None):
         PAs_ordenados_por_prioridade = priorizar_PA(PAs_ordenados_por_prioridade, pa_priorizado)
     cliente_por_PA = dados['cliente_por_PA']
     clientes_reconectados = 0
-    for i, cliente_idx in enumerate(clientes_indexes):
-        cliente_coord = dados['coord_clientes'][cliente_idx]
-        cliente_por_PA[cliente_idx] = np.zeros(dados['n_max_PAs'])
+    for i, idx_cliente in enumerate(clientes_indexes):
+        coord_cliente = dados['coord_clientes'][idx_cliente]
+        cliente_por_PA[idx_cliente] = np.zeros(dados['n_max_PAs'])
         consumo_PAs = np.zeros(len(dados['possiveis_coord_PA']))
 
         # Tenta conectar ao PA mais próximo com capacidade disponível
-        for PA in PAs_ordenados_por_prioridade[cliente_idx]:
+        for PA in PAs_ordenados_por_prioridade[idx_cliente]:
             idx_PA = int(PA[2])
             # print(f"Conectando cliente {cliente} ao pa novo: {PA}")
-            if client_is_able_to_connect(dados, cliente_idx, cliente_coord, PA[:2], consumo_PAs[idx_PA], 1):
+            if client_is_able_to_connect(dados, idx_cliente, coord_cliente, PA[:2], consumo_PAs[idx_PA]):
                 clientes_reconectados = clientes_reconectados + 1
-                dados["cliente_por_PA"][i][idx_PA] = 1
+                dados["cliente_por_PA"][idx_cliente][idx_PA] = 1
                 consumo_PAs[idx_PA] += dados['cons_clientes'][i]
                 break
             # print("Nao conseguiu")
@@ -290,7 +294,7 @@ def priorizar_PA(coord_PAs_idxados, idx_PA):
     return matriz_ordenada
 
 def deslocar_coordenada(coordenada):
-    deslocamentos = np.array([-5, 5])
+    deslocamentos = np.array([-10, -5, 5, 10])
     deslocamento_x = np.random.choice(deslocamentos)
     deslocamento_y = np.random.choice(deslocamentos)
     nova_coordenada = coordenada + np.array([deslocamento_x, deslocamento_y])
