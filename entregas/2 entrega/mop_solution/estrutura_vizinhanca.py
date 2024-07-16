@@ -191,6 +191,7 @@ def k5(dados, log = None):
     Returns:
         dados: O dicionário de dados atualizado com a nova solução.
     """
+    bkp_dados = dados
 
     PAs_ativos = dados['possiveis_coord_PA']
 
@@ -218,7 +219,11 @@ def k5(dados, log = None):
     coluna_PA_novo = dados['cliente_por_PA'][:, len(PAs_ativos) - 1]
     soma_coluna = np.sum(coluna_PA_novo)
     if soma_coluna > 0:
-        print(f"Coluna do PA novo nao ta zerada")
+        linhas_como_tuplas = {tuple(linha) for linha in dados['cliente_por_PA']}
+        linhas_duplicadas = len(linhas_como_tuplas) < len(dados['cliente_por_PA'])
+        if log is not None:
+            print(f"Coluna do PA novo {PA_na_vizinhanca} (idx {len(PAs_ativos) - 1}) nao esta zerada. Linhas dupicadas: {linhas_duplicadas}. Retornando solução recebida")
+        return bkp_dados
     dados['possiveis_coord_PA'] = PAs_ativos
     #Pega ID do novo PA, que é o ultimo da fila, e prioriza a conexao dos desalocados nele
     idx_prioridade = len(PAs_ativos) - 1
@@ -237,6 +242,7 @@ def k6(dados, log = None):
     Returns:
         dados: O dicionário de dados atualizado com a nova solução.
     """
+    bkp_dados = dados
     PAs_ativos_bkp = dados['possiveis_coord_PA']
     PAs_ativos = dados['possiveis_coord_PA']
 
@@ -273,7 +279,11 @@ def k6(dados, log = None):
     coluna_PA_novo = dados['cliente_por_PA'][:, len(PAs_ativos) - 1]
     soma_coluna = np.sum(coluna_PA_novo)
     if soma_coluna > 0:
-        print(f"Coluna do PA novo nao ta zerada")
+        linhas_como_tuplas = {tuple(linha) for linha in dados['cliente_por_PA']}
+        linhas_duplicadas = len(linhas_como_tuplas) < len(dados['cliente_por_PA'])
+        if log is not None:
+            print(f"Coluna do PA novo {PA_no_meio} (idx {len(PAs_ativos) - 1}) nao esta zerada. Linhas dupicadas: {linhas_duplicadas}. Retornando solução recebida")
+        return bkp_dados
     dados['possiveis_coord_PA'] = PAs_ativos
     #Pega ID do novo PA, que é o ultimo da fila, e prioriza a conexao dos desalocados nele
     idx_prioridade = len(PAs_ativos) - 1
@@ -302,6 +312,7 @@ def k7(dados, log = None):
     """
     n_max_PAs = dados['n_max_PAs']
     PAs_ativos = dados['possiveis_coord_PA']
+    bkp_dados = dados
     if (len(PAs_ativos) >= n_max_PAs):
         return dados
 
@@ -331,7 +342,11 @@ def k7(dados, log = None):
     coluna_PA_novo = dados['cliente_por_PA'][:, len(PAs_ativos) - 1]
     soma_coluna = np.sum(coluna_PA_novo)
     if soma_coluna > 0:
-        print(f"Coluna do PA novo nao ta zerada")
+        linhas_como_tuplas = {tuple(linha) for linha in dados['cliente_por_PA']}
+        linhas_duplicadas = len(linhas_como_tuplas) < len(dados['cliente_por_PA'])
+        if log is not None:
+            print(f"Coluna do PA novo {PA_no_meio} (idx {len(PAs_ativos) - 1}) nao esta zerada. Linhas dupicadas: {linhas_duplicadas}. Retornando solução recebida")
+        return bkp_dados
     dados['possiveis_coord_PA'] = PAs_ativos
     #Pega ID do novo PA, que é o ultimo da fila, e prioriza a conexao dos desalocados nele
     idx_prioridade = len(PAs_ativos) - 1

@@ -62,9 +62,9 @@ def shake(dados, k):
     # Recomendação para redução de distancia
     # switch = {1: k5, 2: k7, 3: k3, 4: k4 }
     #Recomendação para ambas
-    # switch = {1: k1, 2: k2, 3: k3, 4: k4 }
+    # switch = {1: k1, 2: k6, 3: k5, 4: k4 }
 
-    switch = {1: k1, 2: k2, 3: k5, 4: k4 }
+    switch = {1: k1, 2: k6, 3: k5, 4: k4 }
 
     return switch[k](dados)
 
