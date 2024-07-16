@@ -241,9 +241,9 @@ def k6(dados, log = None):
     PAs_ativos = dados['possiveis_coord_PA']
 
     # Encontra dois PAs ativos aleatorios e desativa ambos
-    idx_PA_aleatorio_1 = np.random.choice(PAs_ativos.shape[0])
+    idx_PA_aleatorio_1 = np.random.choice(PAs_ativos.shape[0], replace=False)
     backup_PA_1 = PAs_ativos[idx_PA_aleatorio_1]
-    idx_PA_aleatorio_2 = np.random.choice(PAs_ativos.shape[0])
+    idx_PA_aleatorio_2 = np.random.choice(np.delete(np.arange(PAs_ativos.shape[0]), idx_PA_aleatorio_1), replace=False)
     backup_PA_2 = PAs_ativos[idx_PA_aleatorio_2]
     idxs_PAs_para_remover = [idx_PA_aleatorio_1, idx_PA_aleatorio_2]
     PAs_ativos = np.delete(PAs_ativos, idxs_PAs_para_remover, axis=0)
@@ -260,7 +260,7 @@ def k6(dados, log = None):
 
     dados['cliente_por_PA'] = np.delete(dados['cliente_por_PA'], idxs_PAs_para_remover, axis=1)
     if log is not None:
-        print(f"Largura da matriz após os dois PAs serem removidos: {dados['cliente_por_PA'].shape[1]}")
+        print(f"Largura da matriz após os dois PAs {idxs_PAs_para_remover} serem removidos: {dados['cliente_por_PA'].shape[1]}")
     coluna_zeros = np.zeros((dados['cliente_por_PA'].shape[0], 1))
     dados['cliente_por_PA'] = np.hstack((dados['cliente_por_PA'], coluna_zeros, coluna_zeros))
     if log is not None:
@@ -306,9 +306,9 @@ def k7(dados, log = None):
         return dados
 
     # Encontra dois PAs aleatórios
-    idx_PA_aleatorio_1 = np.random.choice(PAs_ativos.shape[0])
+    idx_PA_aleatorio_1 = np.random.choice(PAs_ativos.shape[0], replace=False)
     coord_PA_1 = PAs_ativos[idx_PA_aleatorio_1]
-    idx_PA_aleatorio_2 = np.random.choice(PAs_ativos.shape[0])
+    idx_PA_aleatorio_2 = np.random.choice(np.delete(np.arange(PAs_ativos.shape[0]), idx_PA_aleatorio_1), replace=False)    
     coord_PA_2 = PAs_ativos[idx_PA_aleatorio_2]
     idxs_PAs_para_limpar_clientes = [idx_PA_aleatorio_1, idx_PA_aleatorio_2]
 
@@ -346,6 +346,15 @@ def k7(dados, log = None):
         print(f"{r3(dados)} | {r4(dados)} | {r5(dados)} | {r6(dados)} | {r7(dados)} | {r8(dados)}")
     return dados
 
+def k8(dados, log = None):
+    for i in range(3):
+        dados = k5(dados)
+    return dados
+
+def k9(dados, log = None):
+    for i in range(5):
+        dados = k5(dados)
+    return dados
 
 # Funções utilizadas pelas estruturas de vizinhança
 def realoca_clientes(dados, clientes_indexes, pa_priorizado = None):

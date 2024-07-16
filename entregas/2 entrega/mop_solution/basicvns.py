@@ -2,15 +2,15 @@ import numpy as np
 import os
 import sys, copy
 from random import seed
-from estrutura_vizinhanca import k1, k2, k3, k4, k5, k6, k7
+from estrutura_vizinhanca import k1, k2, k3, k4, k5, k6, k7, k8, k9
 from restricoes import r3,r4,r5,r6,r7,r8,sum_restr
 from graph_maker import plot_infos
 from solution import sol_zero
 import pandas as pd
+import time
 
 
-seed(321)
-np.random.seed(321)
+np.random.seed(int(time.time()))
 
 #Algoritmo para Basic VNS
 
@@ -57,12 +57,13 @@ def basic_VNS(dados, f, k_max, max_int, plot, n_plot):
 
 #aplica perturbação
 def shake(dados, k):
-    switch = {
-        1: k7,
-        2: k2,
-        3: k3,
-        4: k4
-    }
+    # Recomendação para redução de PAs
+    # switch = {1: k1, 2: k6, 3: k3, 4: k5 }
+    # Recomendação para redução de distancia
+    # switch = {1: k5, 2: k7, 3: k3, 4: k4 }
+
+    switch = {1: k5, 2: k7, 3: k3, 4: k4 }
+
     return switch[k](dados)
 
 #função do numero de PAs a ser instalado
