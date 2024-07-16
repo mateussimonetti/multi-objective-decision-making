@@ -2,7 +2,7 @@ import numpy as np
 import os
 import sys, copy
 from random import seed
-from estrutura_vizinhanca import k1, k2, k3, k4, k5
+from estrutura_vizinhanca import k1, k2, k3, k4, k5, k6, k7
 from restricoes import r3,r4,r5,r6,r7,r8,sum_restr
 from graph_maker import plot_infos
 from solution import sol_zero
@@ -57,9 +57,8 @@ def basic_VNS(dados, f, k_max, max_int, plot, n_plot):
 
 #aplica perturbação
 def shake(dados, k):
-    n_change = 1
     switch = {
-        1: k5,
+        1: k7,
         2: k2,
         3: k3,
         4: k4
