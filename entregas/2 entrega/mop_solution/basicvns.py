@@ -61,8 +61,10 @@ def shake(dados, k):
     # switch = {1: k1, 2: k6, 3: k3, 4: k5 }
     # Recomendação para redução de distancia
     # switch = {1: k5, 2: k7, 3: k3, 4: k4 }
+    #Recomendação para ambas
+    # switch = {1: k1, 2: k2, 3: k3, 4: k4 }
 
-    switch = {1: k5, 2: k7, 3: k3, 4: k4 }
+    switch = {1: k1, 2: k2, 3: k5, 4: k4 }
 
     return switch[k](dados)
 
@@ -128,6 +130,7 @@ def best_change(dados, f):
 
 #MAIN
 if __name__ == "__main__":
+    inicio = time.time()
 
     #Pega valores da chamada
     path_file = sys.argv[1]
@@ -202,6 +205,9 @@ if __name__ == "__main__":
     else:
         sol, log = basic_VNS(x, f2, k_max, max_int_vns, bool(n_plot), n_plot)
     
+    #plot solution
+    plot_infos(sol, log, dir_='output/vns/info/')
+    
     # print solution
     print('-------------------------- SOLUCAO OTIMA ENCONTRADA------------------------------')
     print('[Resultado]:')
@@ -214,7 +220,16 @@ if __name__ == "__main__":
     print('Restricao de numero maximo de PAs disponiveis: {}'.format(log[4][-1]))
     print('Restricao de distancia do usuario ao PA: {}'.format(log[5][-1]/100))
     print('(Para a restricao acima, qualquer valor maior que zero se refere a distancia maxima entre usuario e area de acao do PA)')
+
+    fim = time.time()
+    tempo_total_segundos = fim - inicio
+
+    # Converter para horas, minutos e segundos
+    horas = int(tempo_total_segundos // 3600)
+    minutos = int((tempo_total_segundos % 3600) // 60)
+    segundos = int(tempo_total_segundos % 60)
+
+    # Formatando a saída
+    print(f"Tempo de execução: {horas} horas, {minutos} minutos e {segundos} segundos")
     print('\n\n')
-    
-    #plot solution
-    plot_infos(sol, log, dir_='output/vns/info/')
+

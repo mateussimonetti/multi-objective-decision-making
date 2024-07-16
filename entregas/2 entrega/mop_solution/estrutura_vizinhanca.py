@@ -212,7 +212,7 @@ def k5(dados, log = None):
     dados['cliente_por_PA'] = np.hstack((dados['cliente_por_PA'], coluna_zeros))
 
     #Adiciona um novo PA para a vizinhança do PA removido no fim do array
-    PA_na_vizinhanca = deslocar_coordenada(backup_PA)
+    PA_na_vizinhanca = deslocar_coordenada(backup_PA, PAs_ativos)
     PAs_ativos = np.append(PAs_ativos, [PA_na_vizinhanca], axis=0)
 
     coluna_PA_novo = dados['cliente_por_PA'][:, len(PAs_ativos) - 1]
@@ -434,13 +434,24 @@ def priorizar_PA(coord_PAs_idxados, idx_PA):
     
     return matriz_ordenada
 
-def deslocar_coordenada(coordenada):
+def deslocar_coordenada(coordenada, PAs_ativos, max_tentativas=100):
     deslocamentos = np.array([-10, -5, 5, 10])
-    deslocamento_x = np.random.choice(deslocamentos)
-    deslocamento_y = np.random.choice(deslocamentos)
-    nova_coordenada = coordenada + np.array([deslocamento_x, deslocamento_y])
+    tentativas = 0
     
-    return nova_coordenada
+    while tentativas < max_tentativas:
+        deslocamento_x = np.random.choice(deslocamentos)
+        deslocamento_y = np.random.choice(deslocamentos)
+        
+        # Calcular a nova coordenada
+        nova_coordenada = coordenada + np.array([deslocamento_x, deslocamento_y])
+        
+        # Verificar se nova_coordenada já existe em PAs_ativos
+        if not any((nova_coordenada == PA).all() for PA in PAs_ativos):
+            # Se não existir, retornar a coordenada ajustada dentro dos limites
+            nova_coordenada = np.maximum(0, np.minimum(nova_coordenada, 400))
+            return nova_coordenada
+        
+        tentativas += 1
 
 def coordenada_media(c1, c2):
     # Calcular a coordenada do meio
