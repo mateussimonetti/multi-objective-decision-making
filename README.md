@@ -48,9 +48,9 @@ f              : (string) indicativo de que serão otimizadas ambas funções
 - Realocação de clientes priorizada e aleatória:
     * Implementação de função que realoca os clientes, garantindo que toda realocação respeite as restrições devidas
     * Implementação de três lógicas de priorização de PAs para que os clientes se conectem:
-        -> Priorização por PA mais próximo (calcular_dist_ord_cliente_PAs, disponível em estrutura_vizinhanca.py)
-        -> Priorização por PA com mais pessoas no seu raio de ação (calcular_popularidade_ord_cliente_PAs, disponível em estrutura_vizinhanca.py)
-        -> Sem priorização (adicionar_indices, disponível em estrutura_vizinhanca.py)
+        - Priorização por PA mais próximo (calcular_dist_ord_cliente_PAs, disponível em estrutura_vizinhanca.py)
+        - Priorização por PA com mais pessoas no seu raio de ação (calcular_popularidade_ord_cliente_PAs, disponível em estrutura_vizinhanca.py)
+        - Sem priorização (adicionar_indices, disponível em estrutura_vizinhanca.py)
 
 - Logs e tratativas de exceção:
     * Adicionados logs para verificação do funcionamento de funções-chave, facilitando debugging
