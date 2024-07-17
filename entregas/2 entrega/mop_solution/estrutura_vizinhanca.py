@@ -376,7 +376,7 @@ def realoca_clientes(dados, clientes_indexes, pa_priorizado = None):
     coords_PAs = dados['possiveis_coord_PA']
     cons_clientes = dados['cons_clientes']
 
-    PAs_ordenados_por_prioridade = teste(coords_PAs) # ordena por distancia, para todos os clientes, os PAs ativos
+    PAs_ordenados_por_prioridade = calcular_dist_ord_cliente_PAs(coords_PAs) # ordena por distancia. Funciona bem tanto para f1 quanto f2
     #Caso haja algum PA prioritário, coloca ele na frente
     if pa_priorizado is not None:
         PAs_ordenados_por_prioridade = priorizar_PA(PAs_ordenados_por_prioridade, pa_priorizado)
@@ -429,46 +429,55 @@ def calcular_dist_ord_cliente_PAs(coord_PAs):
         PAs_ordenados_por_dist[i, :, 2] = indexes_ordenados #Seta os indexes ordenados
     return PAs_ordenados_por_dist
 
-def teste(coord_PAs):
+def calcular_popularidade_ord_cliente_PAs(coord_PAs):
     dist_matrix = np.load('dist_matrix.npy')
     num_clientes = int(dist_matrix.shape[2])
     #Obtém, a partir da coord do PA, as coordenadas do array de distancia dele para todos os clientes
     pas_ativos = coord_PAs
-    print(f"coord_PAs: {coord_PAs}")
     num_PAs = pas_ativos.shape[0]
-    print(f"num_PAs: {num_PAs}")
     coord_pas_ativos = pas_ativos // 5
     coord_pas_ativos = coord_pas_ativos.astype(int)
-    PA_com_idx = np.zeros((num_PAs, 3))
-    print(f"PA_com_idx = {PA_com_idx}")
+    PAs_com_idx = np.zeros((num_PAs, 3))
 
     #Obtem a quantidade de pessoas no range de cada PA
     contagem_menores_que_85 = np.zeros(num_PAs, dtype=int)    
     sorted_indices = np.zeros(num_PAs, dtype=int)
     PAs_com_indexes =  np.zeros((num_PAs, 2))
-    print(PAs_com_indexes)  
 
     for idx, cp in enumerate(coord_pas_ativos):
-        print(f"{idx} | {cp}")
         # Acessar o array correspondente em dist_matrix
         distancias = dist_matrix[cp[0], cp[1]]
         # Contar quantos elementos são menores que 85
         contagem_menores_que_85[idx] = np.sum(distancias < 85)
-        print(f"pessoas no range do PA {cp}: {contagem_menores_que_85[idx]}")
 
     sorted_indices = np.argsort(-contagem_menores_que_85)
+    PAs_com_idx[:,2] = sorted_indices
     for idx, pos_array in enumerate(sorted_indices):
-        print(f"idx {idx} recebe o elemento {pos_array}")
-        PAs_com_indexes[id] = pas_ativos[pos_array]
+        PAs_com_idx[idx][0] = pas_ativos[pos_array][0]
+        PAs_com_idx[idx][1] = pas_ativos[pos_array][1]
 
-    PA_com_idx[:, 0:2] = PAs_com_indexes
-    PA_com_idx[:,2] = sorted_indices
-    print(f"Lista de PAs já indexados: {PA_com_idx}")
-    print(f"Lista original: {pas_ativos}")
-    raise Exception    
-    PAs_ordenados_por_dist = np.zeros((num_clientes, num_PAs, 3)) #Coordenadas do array de distancia dele para todos os clientes
-    PAs_ordenados_por_dist[:] = np.broadcast_to(PA_com_idx, (num_clientes, num_PAs, 3))
-    return PAs_ordenados_por_dist
+    PAs_ordenados_por_popularidade = np.zeros((num_clientes, num_PAs, 3)) #Coordenadas do array de distancia dele para todos os clientes
+    PAs_ordenados_por_popularidade[:] = np.broadcast_to(PAs_com_idx, (num_clientes, num_PAs, 3))
+    return PAs_ordenados_por_popularidade
+
+def adicionar_indices(coord_PAs):
+    dist_matrix = np.load('dist_matrix.npy')
+    num_clientes = int(dist_matrix.shape[2])
+    num_PAs = coord_PAs.shape[0]
+    # Obtém o número de linhas (Y) da matriz
+    Y = coord_PAs.shape[0]
+    
+    # Cria um array de índices
+    indices = np.arange(Y).reshape(Y, 1)
+    
+    # Concatena a matriz original com o array de índices
+    matriz_com_indices = np.hstack((coord_PAs, indices))
+
+    #Coloca essa ordenação para todos os clientes
+    PAs_ordenados_por_popularidade = np.zeros((num_clientes, num_PAs, 3)) #Coordenadas do array de distancia dele para todos os clientes
+    PAs_ordenados_por_popularidade[:] = np.broadcast_to(matriz_com_indices, (num_clientes, num_PAs, 3))
+    return PAs_ordenados_por_popularidade
+
 
 def priorizar_PA(coord_PAs_idxados, idx_PA):
     # Crie uma cópia da matriz para não modificar a original
