@@ -1,14 +1,11 @@
-## Projeto do componente curricular Teoria da Decisão da UFMG - Escola de Engenharia - Engenharia de Sistemas
-### Problema de posicionamento de pontos de acesso de internet sem fio
-
-![Execução](https://github.com/jesimonbarreto/TeoriaDecisao/blob/main/iterationss.gif?raw=true)
-
+## Projeto de otimização de pontos de acesso em uma área - Engenharia de Sistemas
+### Autores: Mateus Simonetti (2019057004) e Vitor Oliveira (2019057217)
 
 
 
 ### Solução do problema mono-objetivo
 
-Implementação com BVNS (bvns.py)\
+Implementação com BVNS (basicvns.py)\
 Exemplo para rodar o código:\
 \
 python mono_obj/bvns.py clientes.csv 1 4 100 80 10
