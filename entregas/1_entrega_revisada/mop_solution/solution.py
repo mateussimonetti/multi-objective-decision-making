@@ -1,5 +1,5 @@
 import numpy as np
-from restricoes import sum_restr_possiveis, calcular_distancias_cliente_PA
+from restricoes import calcular_distancias_cliente_PA, sum_restr
 
 import math
 
@@ -71,7 +71,7 @@ def sol_zero(dados):
         cliente_por_PA = dados["cliente_por_PA"]
         coord_PAs =  np.array(posicao_PAs)
         dados['possiveis_coord_PA'] = coord_PAs
-        if sum_restr_possiveis(dados) == 0:
+        if sum_restr(dados) == 0:
             break
 
     # Atualizar dados

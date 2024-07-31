@@ -74,11 +74,8 @@ def r8(dados):
 
         return pessoas_com_exp_abaixo
 
-def sum_restr_impossiveis(dados):
-    return r4(dados) + r5(dados) + r6(dados) + r7(dados)
-
-def sum_restr_possiveis(dados):
-    return r3(dados) + r8(dados)
+def sum_restr(dados):
+    return r3(dados) + r4(dados) + r5(dados) + r6(dados) + r7(dados) + r8(dados)
 
 def calcular_distancias_cliente_PA(coord_PAs, cliente_por_PA, dados =  None):
     

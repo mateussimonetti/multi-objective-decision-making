@@ -3,7 +3,7 @@ import os
 import sys, copy
 from random import seed
 from estrutura_vizinhanca import k1, k2, k3, k4, k5, k6, k7, k8, k9
-from restricoes import r3,r4,r5,r6,r7,r8,sum_restr_impossiveis, sum_restr_possiveis
+from restricoes import r3,r4,r5,r6,r7,r8,sum_restr
 from graph_maker import plot_infos
 from solution import sol_zero
 import pandas as pd
@@ -74,13 +74,13 @@ def f1(dados, log = None):
     max_penal_somado = 45
     multiplicador = (25/100) * amplitude_f1 / max_penal_somado
     f1 = len(dados['possiveis_coord_PA'])
-    if (sum_restr_impossiveis(dados) > 0):
+    if (sum_restr(dados) > 0):
         if log is not None:
             print("restr impossiveis > 1")
         return 1e24
     if log is not None:
-        print(f"ultima interação, f1 = {f1 + multiplicador * sum_restr_possiveis(dados)}")
-    return f1 + multiplicador * sum_restr_possiveis(dados)
+        print(f"ultima interação, f1 = {f1}")
+    return f1
 
 #funcao da distancia entre usuários e PA's
 def f2(dados, log = None):
@@ -97,13 +97,13 @@ def f2(dados, log = None):
     f2 = 0
     for i, pa in enumerate(coord_pas_ativos):
         f2 += np.dot(dist_matrix[pa[0]][pa[1]], cliente_por_PA[:, i])
-    if (sum_restr_impossiveis(dados) > 0):
+    if (sum_restr(dados) > 0):
         if log is not None:
             print("restr impossiveis > 1")
         return 1e24
     if log is not None:
-        print(f"ultima interação, f2 = {f2 + multiplicador * sum_restr_possiveis(dados)}")
-    return f2 + multiplicador * sum_restr_possiveis(dados)
+        print(f"ultima interação, f2 = {f2}")
+    return f2 
 
 #Verifica
 def neigh_change(x, x_linha, k, f):

@@ -1,5 +1,5 @@
 import numpy as np
-from restricoes import calcular_distancias_cliente_PA, sum_restr_impossiveis, r3, r4, r5, r6, r7, r8
+from restricoes import calcular_distancias_cliente_PA, r3, r4, r5, r6, r7, r8
 from solution import client_is_able_to_connect
 
 """
