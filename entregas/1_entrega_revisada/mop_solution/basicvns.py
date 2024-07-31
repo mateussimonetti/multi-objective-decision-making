@@ -232,8 +232,8 @@ if __name__ == "__main__":
     print('Restricao de capacidade dos PAs: {}'.format(log[2][-1]))
     print('Restricao de apenas 1 PA por cliente: {}'.format(log[3][-1]))
     print('Restricao de numero maximo de PAs disponiveis: {}'.format(log[4][-1]))
-    print('Restricao de distancia do usuario ao PA: {}'.format(log[5][-1]/100))
-    print('(Para a restricao acima, qualquer valor maior que zero se refere a distancia maxima entre usuario e area de acao do PA)')
+    print('Restricao de distancia do usuario ao PA: {}'.format(log[5][-1]))
+    print('Restricao de exposição dos usuarios aos PAs: {}'.format(log[6][-1]))
 
     fim = time.time()
     tempo_total_segundos = fim - inicio
